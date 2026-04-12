@@ -2,110 +2,163 @@
 
 ## Evaluation Goals
 
-The evaluation plan is designed to show both strengths and weaknesses of the system.
+The evaluation harness is designed to support direct comparison between:
 
-The final deliverables should include:
+1. a single-prompt baseline
+2. the full multi-stage prompt-agent system
 
-- positive evidence that the staged pipeline improves reliability
-- negative evidence that reveals brittle cases, retrieval failures, and prompt failures
+This makes it easier to argue in the final report that performance differences come from system design, not just isolated prompt wording.
 
-## Evaluation Tracks
+## Evaluation Modes
 
-### 1. Benchmark Track
+### 1. Single-Prompt Baseline
 
-Use a relatively stable benchmark set with known labels for reproducible comparisons.
+The baseline uses one prompt per claim to assign a label and rationale in a single shot.
 
-Questions this track answers:
+Its purpose is to answer:
 
-- Does the pipeline reliably extract claims?
-- Are verdict labels accurate under controlled conditions?
-- Which prompt revisions improve structured consistency?
+- how well does a one-shot fact-checking setup work?
+- how often does it overclaim or misuse `not_enough_info`?
+- how much does the multi-stage design improve control and reliability?
 
-### 2. Recent-News Track
+### 2. Multi-Stage Pipeline
 
-Use a curated set of recent, post-cutoff claims where model pretraining may be outdated and retrieval freshness matters.
+The multi-stage system uses the full orchestrated workflow:
 
-Questions this track answers:
+- claim extraction
+- query generation
+- evidence retrieval
+- reranking
+- verification
+- optional correction rewrite
 
-- Does evidence retrieval rescue time-sensitive claims?
-- How often does the system appropriately fall back to `NEI`?
-- Which failures come from stale corpora versus prompt errors?
+Its purpose is to measure the benefits of decomposition and explicit stage interfaces.
+
+## Included Datasets
+
+### Toy Dataset
+
+The repository includes a small sanity-check dataset here:
+
+- [toy_eval.jsonl](/Users/macbook/Desktop/17-630 prompt engineering final project/eval/datasets/toy_eval.jsonl)
+
+This toy set is intentionally small and presentation-friendly. It is useful for:
+
+- verifying that the evaluation code runs end to end
+- generating clean screenshots and tables
+- quickly comparing baseline and multi-stage outputs
+
+### Benchmark Track
+
+Stable examples with known labels for reproducible comparisons.
+
+### Recent-News Track
+
+Time-sensitive examples where stale pretraining is more likely and retrieval quality matters more.
 
 ## Metrics
 
-Recommended core metrics:
+The harness computes the following core metrics:
 
-- claim extraction coverage
-- claim extraction precision
-- verdict accuracy
-- macro F1 over `supported`, `refuted`, `not_enough_info`
-- citation coverage
-- rewrite acceptability
-- conservative `NEI` rate on low-evidence examples
+### Label Accuracy
+
+The fraction of claims where the predicted label exactly matches the gold label.
+
+### Macro F1
+
+The mean F1 across:
+
+- `supported`
+- `refuted`
+- `not_enough_info`
+
+This is useful because class balance is often uneven and `NEI` behavior matters.
+
+### Retrieval Recall@K
+
+When the dataset includes gold evidence ids or gold source document ids, the harness measures whether the relevant evidence appeared in the retrieved top-k set.
+
+This metric is only reported when the dataset provides gold retrieval references.
+
+### NEI Usage Statistics
+
+The harness reports:
+
+- predicted `NEI` count
+- predicted `NEI` rate
+- gold `NEI` count
+- gold `NEI` rate
+
+This is important because prompt-engineered fact checking should be conservative when evidence is weak.
+
+## Run Artifacts
+
+Each run writes a timestamped folder under `eval/results/`.
+
+The folder contains:
+
+- `config.json`
+- `predictions.json`
+- `claim_predictions.csv`
+- `summary.json`
+
+This keeps runs easy to inspect and easy to reuse in slides or a final report.
+
+## Comparison Workflow
+
+Run the baseline and multi-stage systems separately, then compare them.
+
+### Toy Baseline
+
+```bash
+make eval-baseline-toy
+```
+
+### Toy Multi-Stage
+
+```bash
+make eval-multistage-toy
+```
+
+### Compare Two Runs
+
+```bash
+PYTHONPATH=backend .venv/bin/python eval/compare_runs.py \
+  --baseline-run eval/results/<baseline_run_dir> \
+  --multistage-run eval/results/<multistage_run_dir>
+```
+
+### Build Presentation Tables
+
+```bash
+PYTHONPATH=backend .venv/bin/python eval/report_tables.py \
+  --runs eval/results/<baseline_run_dir> eval/results/<multistage_run_dir>
+```
 
 ## Retrieval Notes
 
 Retrieval quality strongly affects everything downstream.
 
-In this repository, weak retrieval can cause:
+Weak retrieval can cause:
 
-- false `not_enough_info` labels even when relevant evidence exists
-- false support when topical but non-decisive chunks are retrieved
-- brittle rewrites that quote a nearby but incorrect passage
+- false `not_enough_info` labels even when evidence exists
+- false support from topical but non-decisive chunks
+- poor correction rewrites because the wrong passage was selected
 
-That is why the project separates:
+That is why the repository evaluates retrieval separately when gold evidence references are available.
 
-- document ingestion
-- chunking
-- dense retrieval
-- reranking
-- final verification
+## Positive Evidence To Surface
 
-For the final presentation/report, it is useful to show at least one example where:
+- cases where multi-stage verification improves accuracy over the baseline
+- cases where reranking improves evidence quality
+- conservative `NEI` behavior on underdetermined claims
+- clean report tables showing better macro F1 or retrieval recall
 
-- better chunking improves evidence specificity
-- better retrieval improves verdict accuracy
-- poor retrieval propagates into a downstream verification failure
+## Negative Evidence To Keep
 
-## Positive Evidence
+- retrieval misses
+- baseline overconfidence
+- multi-stage failure cases caused by claim extraction mistakes
+- examples where evidence is present but still not decisive
 
-Examples to surface in the final presentation/report:
-
-- clean decomposition of multi-claim inputs into atomic claims
-- correct use of evidence to refute a misleading statement
-- safe `NEI` fallback on insufficient or stale evidence
-- improved performance after prompt revision or schema tightening
-
-## Negative Evidence
-
-Examples to keep on purpose:
-
-- retrieval misses that cause false `NEI`
-- evidence bundles with topical but non-decisive passages
-- claim extraction errors that poison downstream stages
-- rewrite outputs that over-correct or under-correct
-
-These cases are useful because they show the failure analysis mindset expected in a prompt-engineering project.
-
-## Reproducibility
-
-Each evaluation run should store:
-
-- config file used
-- provider name
-- prompt version markers
-- dataset name
-- claim-level outputs
-- aggregate metrics
-
-The scaffold already supports writing JSON outputs into `eval/results`.
-
-## Suggested Final Report Framing
-
-Use a simple table comparing:
-
-- baseline prompt
-- schema-constrained multi-stage pipeline
-- pipeline plus retrieval tuning
-
-Then include 2 to 4 representative failures with short interpretation.
+These negative examples are useful in a final presentation because they show real failure analysis rather than only cherry-picked wins.

@@ -24,9 +24,8 @@ frontend/.env.local
 
 # Logs and generated outputs
 *.log
-eval/results/*.json
-eval/results/*.jsonl
-eval/results/*.csv
+eval/results/*
+!eval/results/README.md
 data/processed/*
 !data/processed/.gitkeep
 data/corpus/*.index

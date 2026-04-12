@@ -2,7 +2,7 @@ PYTHON ?= python3.11
 VENV_PIP = .venv/bin/pip
 VENV_PYTHON = .venv/bin/python
 
-.PHONY: setup setup-full backend frontend test lint index eval-benchmark eval-recent demo backend-check
+.PHONY: setup setup-full backend frontend test lint index eval-benchmark eval-recent eval-baseline-toy eval-multistage-toy eval-compare-toy demo backend-check
 
 setup:
 	$(PYTHON) -m venv .venv
@@ -39,6 +39,15 @@ eval-benchmark:
 
 eval-recent:
 	PYTHONPATH=backend $(VENV_PYTHON) scripts/run_evaluation.py --config eval/configs/recent_news.yaml
+
+eval-baseline-toy:
+	PYTHONPATH=backend $(VENV_PYTHON) eval/run_baseline.py --dataset eval/datasets/toy_eval.jsonl --dataset-name toy_eval --output-root eval/results --top-k 4
+
+eval-multistage-toy:
+	PYTHONPATH=backend $(VENV_PYTHON) eval/run_multistage.py --dataset eval/datasets/toy_eval.jsonl --dataset-name toy_eval --output-root eval/results --top-k 4 --max-claims 6 --include-rewrite
+
+eval-compare-toy:
+	@echo "Run baseline and multistage first, then call eval/compare_runs.py with the two run directories."
 
 demo:
 	docker compose up --build
