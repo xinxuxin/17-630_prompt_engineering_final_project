@@ -7,8 +7,20 @@ from typing import Any
 from app.core.settings import get_settings
 from app.schemas.pipeline import AnalyzeRequest
 from app.services.fact_check import FactCheckService
-from eval_utils import claim_to_dict, create_run_dir, normalize_examples, write_csv, write_json
-from metrics import compute_metrics
+
+try:
+    from eval.eval_utils import (
+        claim_to_dict,
+        create_run_dir,
+        normalize_examples,
+        summarize_examples,
+        write_csv,
+        write_json,
+    )
+    from eval.metrics import compute_metrics
+except ImportError:
+    from eval_utils import claim_to_dict, create_run_dir, normalize_examples, summarize_examples, write_csv, write_json
+    from metrics import compute_metrics
 
 
 def run_multistage(
@@ -23,6 +35,7 @@ def run_multistage(
     settings = get_settings()
     service = FactCheckService(settings)
     examples = normalize_examples(dataset_path)
+    dataset_summary = summarize_examples(examples)
     run_dir = create_run_dir(output_root, "multistage", dataset_name)
 
     example_outputs: list[dict[str, Any]] = []
@@ -42,6 +55,7 @@ def run_multistage(
             {
                 "example_id": example.example_id,
                 "input_text": example.input_text,
+                "example_metadata": example.metadata,
                 "gold_claims": [claim_to_dict(claim) for claim in example.claims],
                 "response": response.model_dump(),
             }
@@ -53,6 +67,7 @@ def run_multistage(
         "mode": "multistage",
         "dataset_name": dataset_name,
         "dataset_path": str(dataset_path),
+        "dataset_summary": dataset_summary,
         "metrics": metrics,
         "examples": len(examples),
         "run_dir": str(run_dir),
@@ -62,6 +77,7 @@ def run_multistage(
         "mode": "multistage",
         "dataset_name": dataset_name,
         "dataset_path": str(dataset_path),
+        "dataset_summary": dataset_summary,
         "top_k": top_k,
         "max_claims": max_claims,
         "include_rewrite": include_rewrite,
@@ -81,6 +97,7 @@ def _align_multistage_claims(example, response: dict[str, Any]) -> list[dict[str
         rows.append(
             {
                 "example_id": example.example_id,
+                "dataset_track": example.metadata.get("dataset_track", "benchmark_style"),
                 "claim_index": index + 1,
                 "gold_claim_id": gold_claim.claim_id,
                 "gold_claim_text": gold_claim.text,
@@ -88,12 +105,20 @@ def _align_multistage_claims(example, response: dict[str, Any]) -> list[dict[str
                 "gold_label": gold_claim.gold_label,
                 "predicted_label": prediction.get("label", "not_enough_info") if prediction else "not_enough_info",
                 "correct": (
-                    gold_claim.gold_label == prediction.get("label")
-                    if prediction
-                    else False
+                    None
+                    if gold_claim.gold_label is None
+                    else (
+                        gold_claim.gold_label == prediction.get("label")
+                        if prediction
+                        else False
+                    )
                 ),
                 "rationale": prediction.get("rationale", "Missing prediction.") if prediction else "Missing prediction.",
                 "confidence": prediction.get("confidence") if prediction else None,
+                "source_article_title": gold_claim.source_article_title,
+                "publication_date": gold_claim.publication_date,
+                "source_url": gold_claim.source_url,
+                "claim_notes": gold_claim.notes,
                 "retrieved_evidence_ids": [item.get("evidence_id") for item in evidence],
                 "retrieved_source_document_ids": [
                     item.get("source_document_id") for item in evidence if item.get("source_document_id")

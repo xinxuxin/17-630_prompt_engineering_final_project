@@ -1,6 +1,7 @@
 dataset_name: benchmark
 dataset_path: data/benchmark/claims.jsonl
 output_dir: eval/results
+mode: multistage
 include_rewrite: true
 max_claims: 6
 top_k_evidence: 4

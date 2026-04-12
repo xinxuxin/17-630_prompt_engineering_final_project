@@ -5,7 +5,10 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from eval_utils import markdown_table, write_csv, write_json
+try:
+    from eval.eval_utils import markdown_table, write_csv, write_json
+except ImportError:
+    from eval_utils import markdown_table, write_csv, write_json
 
 
 def compare_runs(*, baseline_run: Path, multistage_run: Path, output_root: Path) -> Path:
@@ -54,6 +57,8 @@ def compare_runs(*, baseline_run: Path, multistage_run: Path, output_root: Path)
     comparison = {
         "baseline_run": str(baseline_run),
         "multistage_run": str(multistage_run),
+        "dataset_name": baseline_summary.get("dataset_name"),
+        "dataset_track": baseline_summary.get("dataset_summary", {}).get("dataset_tracks", []),
         "rows": rows,
         "baseline_summary": baseline_summary,
         "multistage_summary": multistage_summary,

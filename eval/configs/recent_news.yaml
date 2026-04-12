@@ -1,6 +1,7 @@
 dataset_name: recent_news
-dataset_path: data/recent_news/claims.jsonl
+dataset_path: data/recent_news/curated_examples
 output_dir: eval/results
+mode: multistage
 include_rewrite: true
 max_claims: 6
 top_k_evidence: 4

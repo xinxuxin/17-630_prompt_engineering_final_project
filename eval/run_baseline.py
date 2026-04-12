@@ -11,11 +11,23 @@ from app.pipeline.base import invoke_structured_generation
 from app.providers.factory import build_provider
 from app.schemas.common import StrictModel, VerdictLabel
 from app.schemas.evidence import EvidenceItem
-from eval_utils import claim_to_dict, create_run_dir, normalize_examples, write_csv, write_json
-from metrics import compute_metrics
 from retrieval.chunking import ChunkingConfig
 from retrieval.retriever import LocalEvidenceRetriever
 from retrieval.reranker import HeuristicReranker
+
+try:
+    from eval.eval_utils import (
+        claim_to_dict,
+        create_run_dir,
+        normalize_examples,
+        summarize_examples,
+        write_csv,
+        write_json,
+    )
+    from eval.metrics import compute_metrics
+except ImportError:
+    from eval_utils import claim_to_dict, create_run_dir, normalize_examples, summarize_examples, write_csv, write_json
+    from metrics import compute_metrics
 
 
 class BaselinePrediction(StrictModel):
@@ -45,6 +57,7 @@ def run_baseline(
     )
     reranker = HeuristicReranker()
     examples = normalize_examples(dataset_path)
+    dataset_summary = summarize_examples(examples)
     run_dir = create_run_dir(output_root, "baseline", dataset_name)
 
     example_outputs: list[dict[str, Any]] = []
@@ -77,15 +90,24 @@ def run_baseline(
             claim_rows.append(
                 {
                     "example_id": example.example_id,
+                    "dataset_track": example.metadata.get("dataset_track", "benchmark_style"),
                     "claim_index": index,
                     "gold_claim_id": gold_claim.claim_id,
                     "gold_claim_text": gold_claim.text,
                     "predicted_claim_text": gold_claim.text,
                     "gold_label": gold_claim.gold_label,
                     "predicted_label": prediction.label.value,
-                    "correct": gold_claim.gold_label == prediction.label.value,
+                    "correct": (
+                        gold_claim.gold_label == prediction.label.value
+                        if gold_claim.gold_label is not None
+                        else None
+                    ),
                     "rationale": prediction.rationale,
                     "confidence": prediction.confidence,
+                    "source_article_title": gold_claim.source_article_title,
+                    "publication_date": gold_claim.publication_date,
+                    "source_url": gold_claim.source_url,
+                    "claim_notes": gold_claim.notes,
                     "retrieved_evidence_ids": [item.evidence_id for item in reranked_items],
                     "retrieved_source_document_ids": [
                         item.source_document_id for item in reranked_items if item.source_document_id
@@ -101,6 +123,7 @@ def run_baseline(
             {
                 "example_id": example.example_id,
                 "input_text": example.input_text,
+                "example_metadata": example.metadata,
                 "gold_claims": [claim_to_dict(claim) for claim in example.claims],
                 "claims": example_claims,
             }
@@ -111,6 +134,7 @@ def run_baseline(
         "mode": "baseline",
         "dataset_name": dataset_name,
         "dataset_path": str(dataset_path),
+        "dataset_summary": dataset_summary,
         "metrics": metrics,
         "examples": len(examples),
         "provider_name": provider.name,
@@ -122,6 +146,7 @@ def run_baseline(
         "mode": "baseline",
         "dataset_name": dataset_name,
         "dataset_path": str(dataset_path),
+        "dataset_summary": dataset_summary,
         "top_k": top_k,
         "provider_name": provider.name,
     })

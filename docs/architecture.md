@@ -133,6 +133,8 @@ Examples:
 - recent-news performance is more sensitive to retrieval than benchmark performance
 - prompt versions can change extraction granularity and classification conservatism
 
+The curated recent-news track exists for a specific reason: large language models may rely on stale pretraining for post-cutoff events. By attaching article title, publication date, and URL to each recent claim, the system can demonstrate that "freshness" is a first-class evaluation variable rather than an unspoken assumption.
+
 ## Evaluation and Failure Analysis
 
 The architecture is intentionally evaluation-friendly.
@@ -142,6 +144,7 @@ It stores:
 - claim-level predictions
 - evidence selections
 - confidence and rationale summaries
+- source provenance for recent-news claims
 - run metadata
 - outputs that are easy to compare across prompt and config variants
 
@@ -150,3 +153,22 @@ That makes it suitable for:
 - a short live demo
 - a 2-page report
 - post-hoc failure analysis on both benchmark and recent-news cases
+
+## Dataset Tracks
+
+The evaluation side of the architecture supports two parallel tracks:
+
+### Benchmark-Style Records
+
+- paragraph-oriented inputs
+- stable gold labels
+- useful for controlled before/after comparisons
+
+### Curated Recent-Claim Records
+
+- one atomic recent claim per entry
+- explicit source article metadata
+- optional gold labels during early collection
+- especially useful for explaining how retrieval compensates for post-cutoff uncertainty
+
+This split makes the final presentation easier to defend academically: benchmark data measures controlled performance, while curated recent claims measure whether the system can stay grounded when pretrained knowledge may be outdated.

@@ -8,9 +8,15 @@ LABELS = ["supported", "refuted", "not_enough_info"]
 
 
 def compute_metrics(claim_rows: list[dict[str, Any]], top_k: int) -> dict[str, Any]:
-    gold = [row["gold_label"] for row in claim_rows]
-    predicted = [row["predicted_label"] for row in claim_rows]
-    total = len(claim_rows)
+    scored_rows = [
+        row
+        for row in claim_rows
+        if row.get("gold_label") in LABELS
+    ]
+    gold = [row["gold_label"] for row in scored_rows]
+    predicted = [row["predicted_label"] for row in scored_rows]
+    total = len(scored_rows)
+    total_claims = len(claim_rows)
     correct = sum(1 for g, p in zip(gold, predicted, strict=False) if g == p)
 
     per_label = {
@@ -28,7 +34,7 @@ def compute_metrics(claim_rows: list[dict[str, Any]], top_k: int) -> dict[str, A
         if gold_ids.intersection(retrieved_ids):
             retrieval_hits += 1
 
-    predicted_counts = Counter(predicted)
+    predicted_counts = Counter(row["predicted_label"] for row in claim_rows)
     gold_counts = Counter(gold)
 
     macro_f1 = round(
@@ -37,7 +43,9 @@ def compute_metrics(claim_rows: list[dict[str, Any]], top_k: int) -> dict[str, A
     )
 
     return {
+        "claims_total": total_claims,
         "claims_scored": total,
+        "claims_without_gold_labels": total_claims - total,
         "label_accuracy": round(correct / total, 4) if total else None,
         "macro_f1": macro_f1 if total else None,
         "per_label": per_label,
@@ -50,7 +58,7 @@ def compute_metrics(claim_rows: list[dict[str, Any]], top_k: int) -> dict[str, A
         "retrieval_recall_eligible_claims": len(eligible_retrieval_rows),
         "nei_usage": {
             "predicted_nei_count": predicted_counts["not_enough_info"],
-            "predicted_nei_rate": round(predicted_counts["not_enough_info"] / total, 4) if total else None,
+            "predicted_nei_rate": round(predicted_counts["not_enough_info"] / total_claims, 4) if total_claims else None,
             "gold_nei_count": gold_counts["not_enough_info"],
             "gold_nei_rate": round(gold_counts["not_enough_info"] / total, 4) if total else None,
         },

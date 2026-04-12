@@ -56,6 +56,23 @@ Stable examples with known labels for reproducible comparisons.
 
 Time-sensitive examples where stale pretraining is more likely and retrieval quality matters more.
 
+This track is included explicitly to address the outdated-pretraining problem. A model may sound confident about a recent headline even when its parametric knowledge is stale, so the evaluation harness treats recent claims as provenance-aware records rather than generic paragraphs.
+
+Each curated recent claim includes:
+
+- claim text
+- source article title
+- publication date
+- source URL
+- optional gold label
+- notes
+
+The included sample directory is:
+
+- [data/recent_news/curated_examples](/Users/macbook/Desktop/17-630 prompt engineering final project/data/recent_news/curated_examples)
+
+The harness can load either a single curated-claims file or a directory of JSONL files, which makes it easy to swap in real post-cutoff headline-event claims later.
+
 ## Metrics
 
 The harness computes the following core metrics:
@@ -102,6 +119,13 @@ The folder contains:
 - `claim_predictions.csv`
 - `summary.json`
 
+For curated recent-news runs, the artifacts also preserve:
+
+- source article title
+- publication date
+- source URL
+- annotation notes
+
 This keeps runs easy to inspect and easy to reuse in slides or a final report.
 
 ## Comparison Workflow
@@ -118,6 +142,30 @@ make eval-baseline-toy
 
 ```bash
 make eval-multistage-toy
+```
+
+### Benchmark Multi-Stage
+
+```bash
+make eval-benchmark
+```
+
+### Recent-News Multi-Stage
+
+```bash
+make eval-recent
+```
+
+### Benchmark Baseline
+
+```bash
+make eval-baseline-benchmark
+```
+
+### Recent-News Baseline
+
+```bash
+make eval-baseline-recent
 ```
 
 ### Compare Two Runs
@@ -144,6 +192,7 @@ Weak retrieval can cause:
 - false `not_enough_info` labels even when evidence exists
 - false support from topical but non-decisive chunks
 - poor correction rewrites because the wrong passage was selected
+- especially misleading behavior on recent claims where pretrained knowledge may be outdated
 
 That is why the repository evaluates retrieval separately when gold evidence references are available.
 

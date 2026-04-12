@@ -120,6 +120,8 @@ make lint           # run frontend linting
 make index          # build the FAISS retrieval index
 make eval-benchmark # run benchmark evaluation
 make eval-recent    # run recent-news evaluation
+make eval-baseline-benchmark # run benchmark baseline
+make eval-baseline-recent    # run recent-news baseline
 make demo           # start frontend + backend with Docker
 ```
 
@@ -147,11 +149,14 @@ This project is designed to support two complementary evaluation modes:
 1. A benchmark split with stable labels for reproducible comparisons.
 2. A curated recent-news split where pretraining may be stale and retrieval quality matters more.
 
+The recent-news track is explicitly included as a response to outdated pretrained knowledge. Instead of assuming the model "already knows" recent events, the system stores source article metadata, retrieves fresh evidence, and keeps unlabeled recent claims available for later annotation.
+
 Evaluation outputs are intentionally structured to capture:
 
 - accuracy and label distribution
 - claim-level success and failure cases
 - evidence coverage
+- source article title, publication date, and URL for recent-news claims
 - unsupported rewrites
 - false supports, false refutations, and conservative `NEI` behavior
 
@@ -189,3 +194,16 @@ The next implementation steps are straightforward:
 2. expand the local evidence corpus
 3. calibrate prompt versions against benchmark and recent-news sets
 4. collect stronger positive and negative evidence for the final report
+
+## Recent-News Data Format
+
+The curated recent-claims format supports one atomic claim per entry with:
+
+- claim text
+- source article title
+- publication date
+- source URL
+- optional gold label
+- notes and optional gold retrieval targets
+
+This keeps the "post-cutoff knowledge" evaluation track easy to explain in a final presentation: each row is a concrete recent claim with explicit provenance, not just another paragraph in a generic benchmark.
