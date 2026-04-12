@@ -1,0 +1,32 @@
+{
+  "run_id": "sample_benchmark_001",
+  "dataset_name": "benchmark",
+  "summary": {
+    "total_claims": 4,
+    "supported": 2,
+    "refuted": 1,
+    "not_enough_info": 1
+  },
+  "claims": [
+    {
+      "claim_id": "claim_001",
+      "label": "supported",
+      "confidence": 0.86
+    },
+    {
+      "claim_id": "claim_002",
+      "label": "supported",
+      "confidence": 0.79
+    },
+    {
+      "claim_id": "claim_003",
+      "label": "refuted",
+      "confidence": 0.83
+    },
+    {
+      "claim_id": "claim_004",
+      "label": "not_enough_info",
+      "confidence": 0.30
+    }
+  ]
+}

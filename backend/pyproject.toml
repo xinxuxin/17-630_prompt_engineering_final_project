@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fact-check-backend"
+version = "0.1.0"
+description = "Backend for a multi-stage prompt-agent fact checking system."
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn[standard]>=0.30,<1.0",
+  "pydantic>=2.8,<3.0",
+  "pydantic-settings>=2.4,<3.0",
+  "httpx>=0.27,<1.0",
+  "orjson>=3.10,<4.0",
+  "pyyaml>=6.0,<7.0",
+  "tenacity>=8.4,<10.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2,<9.0",
+]
+retrieval = [
+  "numpy>=2.0,<3.0",
+  "faiss-cpu>=1.8,<2.0",
+  "sentence-transformers>=3.0,<4.0",
+]
+openai = [
+  "openai>=1.40,<2.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]

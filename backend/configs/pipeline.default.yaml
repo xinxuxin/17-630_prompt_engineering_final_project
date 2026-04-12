@@ -1,0 +1,15 @@
+provider:
+  name: mock
+  model: gpt-4.1-mini
+
+pipeline:
+  max_claims_per_request: 12
+  max_stage_retries: 2
+  max_pipeline_loops: 1
+  conservative_nei_threshold: 0.48
+
+retrieval:
+  sentence_transformer_model: all-MiniLM-L6-v2
+  top_k: 4
+  dense_index: data/corpus/faiss.index
+  corpus_path: data/corpus/documents.jsonl

@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env.example
+    environment:
+      FACT_CHECK_DATA_ROOT: /workspace/data
+      FACT_CHECK_EVAL_ROOT: /workspace/eval
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/workspace/data
+      - ./eval:/workspace/eval
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file:
+      - ./frontend/.env.example
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app

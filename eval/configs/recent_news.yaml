@@ -1,0 +1,6 @@
+dataset_name: recent_news
+dataset_path: data/recent_news/claims.jsonl
+output_dir: eval/results
+include_rewrite: true
+max_claims: 6
+top_k_evidence: 4
