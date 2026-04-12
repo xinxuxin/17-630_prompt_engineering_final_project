@@ -1,0 +1,9 @@
+{
+  "label": "refuted",
+  "confidence": 0.83,
+  "rationale": "The top evidence explicitly says the project received a state clean-energy grant, which contradicts the claim.",
+  "citation_ids": [
+    "doc_riverdale_grant::chunk_000"
+  ],
+  "evidence_strength": 0.83
+}

@@ -1,8 +1,10 @@
-Original claim:
+Original Claim:
 {claim_text}
 
-Verifier label:
+Verifier Label:
 {label}
 
 Evidence:
 {evidence_block}
+
+If the evidence does not justify a clean correction, keep the edit conservative.

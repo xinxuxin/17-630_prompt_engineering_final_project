@@ -1,29 +1,48 @@
 # Prompt Design
 
-This document is the prompt-design workspace for the final report. The repository code already includes prompt templates and structured output contracts; this file is for versioned human-readable prompt notes.
+This document explains the prompt set used by the multi-stage fact-checking pipeline. The goal is not to show one giant prompt, but to show how prompt engineering is distributed across specialized stages with strict schema contracts.
 
 ## Shared Prompting Principles
 
-- require strict JSON outputs
-- include explicit label definitions
-- remind the model to avoid unsupported inference
-- use bounded retries and validation
-- prefer `not_enough_info` over overconfident guessing
+- Every stage returns JSON only.
+- Every stage prompt includes an explicit role, task, constraints, and output format.
+- The prompts are short enough to explain in a presentation, but specific enough to reduce brittle outputs.
+- Schema validation happens after generation, so prompts are written to cooperate with typed parsing.
+- `not_enough_info` is explicit and preferred over unsupported certainty.
+- Later stages are not allowed to “repair” errors by inventing unstated facts.
 
-## Agent 1: Claim Extraction Prompt
+## Why This Is Prompt Engineering In The Small
 
-### Objective
+This project treats each prompt as a local control surface.
 
-Transform a paragraph or article into atomic, factual, independently checkable claims.
+The design work here is prompt engineering in the small because it focuses on:
 
-### Inputs
+- exact output shape
+- wording that reduces hallucinated structure
+- label definitions that affect decision boundaries
+- stage-specific guardrails
+- prompt brevity versus robustness tradeoffs
 
-- user text
-- max claims
-- extraction instructions
-- output schema
+Each prompt is narrow, typed, and intentionally optimized for one step in the larger system.
 
-### Output Contract
+## Stage 1: Claim Extraction
+
+### Prompt Goal
+
+Turn raw text into atomic, independently checkable claims.
+
+### Design Rationale
+
+The extraction prompt explicitly says:
+
+- only factual assertions
+- split compound claims
+- do not invent claims
+- preserve source wording where possible
+
+This matters because downstream retrieval and verification both become less reliable when one extracted item contains multiple assertions.
+
+### Expected Schema
 
 - `claims[]`
 - `claim_id`
@@ -31,98 +50,126 @@ Transform a paragraph or article into atomic, factual, independently checkable c
 - `source_span`
 - `notes`
 
-### Failure Modes to Track
+### Likely Failure Modes
 
-- merged claims that should be split
-- opinions incorrectly treated as facts
-- omitted claims
-- hallucinated claims not grounded in the input
+- a compound sentence remains unsplit
+- an opinion is incorrectly extracted as a factual claim
+- the model omits a checkable claim
+- the model creates a cleaner but unsupported paraphrase
 
-## Agent 2: Retrieval Query Prompt
+## Stage 2: Query Generation
 
-### Objective
+### Prompt Goal
 
-Create retrieval-friendly search text from each atomic claim while preserving the factual core.
+Rewrite one atomic claim into a retrieval-friendly query.
 
-### Inputs
+### Design Rationale
 
-- atomic claim
-- corpus constraints
+The query generator is not allowed to verify the claim. Its job is only to improve search recall while preserving the factual core. The prompt therefore emphasizes:
 
-### Output Contract
+- keep entities, dates, quantities, and event terms
+- do not decide truth
+- do not add unsupported specifics
+- provide alternatives only when useful for retrieval
 
-- retrieval query text
-- optional disambiguation keywords
+This separation makes the pipeline easier to explain and debug.
 
-### Failure Modes to Track
+### Expected Schema
 
-- over-specified queries that miss relevant evidence
-- under-specified queries that retrieve noise
+- `claim_id`
+- `query_text`
+- `alternative_queries`
+- `keywords`
 
-## Agent 3: Verdict Classification Prompt
+### Likely Failure Modes
 
-### Objective
+- the query becomes too broad and retrieves topical noise
+- the query becomes too narrow and misses evidence
+- the model silently rewrites away an important factual constraint
 
-Judge one claim against retrieved evidence and assign one of three labels:
+## Stage 3: Verification
 
-- `supported`
-- `refuted`
-- `not_enough_info`
+### Prompt Goal
 
-### Inputs
+Assign `supported`, `refuted`, or `not_enough_info` from the retrieved evidence only.
 
-- claim text
-- evidence bundle
-- label definitions
-- confidence guidance
-- output schema
+### Design Rationale
 
-### Output Contract
+The verifier prompt is the most important decision prompt in the pipeline. It explicitly defines each label and makes conservative behavior mandatory:
+
+- use only the supplied evidence
+- choose `not_enough_info` when evidence is weak, stale, mixed, or indirect
+- do not overclaim from surface similarity
+- cite only evidence ids actually used
+
+This is academically defensible because the prompt exposes the system’s intended epistemic policy rather than hiding it.
+
+### Expected Schema
 
 - `label`
 - `confidence`
-- `justification`
-- `citations`
+- `rationale`
+- `citation_ids`
+- `evidence_strength`
 
-### Failure Modes to Track
+### Likely Failure Modes
 
-- false support from weak lexical overlap
+- false support from lexical overlap without real entailment
 - false refutation from partial contradiction
-- overuse or underuse of `NEI`
+- underuse of `not_enough_info`
+- overuse of `not_enough_info` when evidence is actually decisive
 
-## Agent 4: Corrective Rewrite Prompt
+## Stage 4: Correction Rewrite
 
-### Objective
+### Prompt Goal
 
-Produce a minimally edited rewrite that preserves as much of the original claim as possible while aligning it with evidence.
+Produce a minimally edited correction that stays close to the original wording and uses evidence-backed citations.
 
-### Inputs
+### Design Rationale
 
-- original claim
-- verdict
-- evidence citations
-- rewrite constraints
-- output schema
+This prompt explicitly constrains the rewrite to:
 
-### Output Contract
+- make the smallest necessary edit
+- preserve structure when possible
+- avoid unsupported additions
+- remain citation-aware
+- stay conservative when the evidence is not decisive
+
+That makes the rewrite stage easy to justify in a final presentation: it is not doing open-ended generation, but controlled post-verification editing.
+
+### Expected Schema
 
 - `text`
+- `citation_ids`
 - `citations`
 - `edit_summary`
 
-### Failure Modes to Track
+### Likely Failure Modes
 
-- changing too much of the original sentence
-- introducing unsupported wording
-- citation mismatch
+- the rewrite changes too much of the sentence
+- the rewrite smuggles in unsupported detail
+- the citations do not correspond to the actual edit
+- the model “fixes” a claim that should have remained `not_enough_info`
+
+## Prompt Set Summary
+
+The four prompts work because they divide the fact-checking task into small, controllable decisions:
+
+1. Extract what should be checked.
+2. Generate how to search for it.
+3. Decide what the evidence actually supports.
+4. Rewrite only when a correction is justified.
+
+This decomposition is one of the main project arguments: prompt engineering is not just about writing a better single prompt, but about designing reliable interfaces between multiple prompts.
 
 ## Prompt Versioning Notes
 
-Track prompt variants by:
+Each stage prompt should be tracked with:
 
+- stage name
 - version tag
-- intended change
-- benchmark delta
-- recent-news delta
-- failure cases improved
-- new regressions introduced
+- intended behavioral change
+- expected effect on benchmark examples
+- expected effect on recent-news examples
+- observed failure cases improved
+- regressions introduced

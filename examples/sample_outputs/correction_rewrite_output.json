@@ -1,0 +1,14 @@
+{
+  "text": "The project was financed through university funds and a state clean-energy grant.",
+  "citation_ids": [
+    "doc_riverdale_grant::chunk_000"
+  ],
+  "citations": [
+    {
+      "evidence_id": "doc_riverdale_grant::chunk_000",
+      "title": "Riverdale Grant Announcement",
+      "url": "https://example.edu/riverdale/grant-announcement"
+    }
+  ],
+  "edit_summary": "Replaced the unsupported phrase 'no state funding' with the evidence-backed funding description."
+}
