@@ -1,32 +1,27 @@
-from pydantic import BaseModel, ConfigDict, Field
+from datetime import UTC, datetime
 
-from app.schemas.common import Citation, StageTrace, VerdictLabel
+from pydantic import Field
+
+from app.schemas.common import StageTrace, StrictModel, VerdictLabel
+from app.schemas.correction import CorrectionRewriteOutput
 from app.schemas.evidence import EvidenceItem
 
 
-class CorrectedRewrite(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    text: str = Field(min_length=3)
-    citations: list[Citation] = Field(default_factory=list)
-    edit_summary: str
-
-
-class ClaimAssessment(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class ClaimAnalysisResult(StrictModel):
     claim_id: str
     claim_text: str
+    query_text: str
+    alternative_queries: list[str] = Field(default_factory=list)
     label: VerdictLabel
     confidence: float = Field(ge=0.0, le=1.0)
+    rationale: str
     justification: str
     evidence: list[EvidenceItem] = Field(default_factory=list)
-    corrected_rewrite: CorrectedRewrite | None = None
+    corrected_rewrite: CorrectionRewriteOutput | None = None
+    stage_trace: list[StageTrace] = Field(default_factory=list)
 
 
-class FactCheckRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class AnalyzeRequest(StrictModel):
     input_text: str = Field(min_length=10)
     dataset_name: str = "custom"
     include_rewrite: bool = True
@@ -34,21 +29,38 @@ class FactCheckRequest(BaseModel):
     top_k_evidence: int = Field(default=4, ge=1, le=8)
 
 
-class FactCheckSummary(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class AnalysisSummary(StrictModel):
     total_claims: int
     supported: int
     refuted: int
     not_enough_info: int
 
 
-class FactCheckResponse(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class PipelineMetadata(StrictModel):
+    run_id: str
+    dataset_name: str
+    provider_name: str
+    provider_configured: bool
+    generated_at: str = Field(
+        default_factory=lambda: datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    )
+    max_stage_retries: int = Field(ge=0)
+    max_pipeline_loops: int = Field(ge=1)
+    loops_used: int = Field(ge=1)
+    total_stage_fallbacks: int = Field(ge=0)
 
+
+class AnalyzeResponse(StrictModel):
     run_id: str
     dataset_name: str
     input_text: str
-    claims: list[ClaimAssessment]
+    claims: list[ClaimAnalysisResult]
     stage_trace: list[StageTrace]
-    summary: FactCheckSummary
+    summary: AnalysisSummary
+    pipeline_metadata: PipelineMetadata
+
+
+FactCheckRequest = AnalyzeRequest
+FactCheckResponse = AnalyzeResponse
+FactCheckSummary = AnalysisSummary
+ClaimAssessment = ClaimAnalysisResult

@@ -18,5 +18,5 @@ class StructuredProvider(ABC):
         user_prompt: str,
         response_model: type[T],
         max_retries: int = 1,
-    ) -> T:
+    ) -> object:
         raise NotImplementedError

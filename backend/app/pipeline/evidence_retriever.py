@@ -1,36 +1,52 @@
 from app.core.settings import Settings
-from app.schemas.claims import AtomicClaim, QueryGenerationOutput
+from app.pipeline.base import run_stage
 from app.retrieval.corpus import load_corpus
 from app.retrieval.faiss_index import FaissDocumentIndex
-from app.schemas.evidence import EvidenceItem, EvidenceRetrievalOutput
+from app.schemas.common import StageTrace
+from app.schemas.evidence import (
+    EvidenceItem,
+    EvidenceRetrieverInput,
+    EvidenceRetrievalOutput,
+)
 from app.utils.text import lexical_overlap
 
 
-class RetrievalService:
+class EvidenceRetriever:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-    def retrieve(
+    def run(
         self,
-        claim: AtomicClaim,
-        query: QueryGenerationOutput,
-        top_k: int,
-    ) -> EvidenceRetrievalOutput:
-        dense_items = self._search_dense(query.query_text, top_k)
-        if dense_items:
+        stage_input: EvidenceRetrieverInput,
+    ) -> tuple[EvidenceRetrievalOutput, StageTrace]:
+        claim_id = stage_input.claim.claim_id
+
+        def primary() -> EvidenceRetrievalOutput:
+            dense_items = self._search_dense(stage_input.query.query_text, stage_input.top_k)
+            if not dense_items:
+                raise RuntimeError("Dense retrieval returned no candidates.")
             return EvidenceRetrievalOutput(
-                claim_id=claim.claim_id,
-                query_text=query.query_text,
+                claim_id=claim_id,
+                query_text=stage_input.query.query_text,
                 retrieval_strategy="dense",
                 items=dense_items,
             )
 
-        lexical_items = self._search_lexical(query.query_text, top_k)
-        return EvidenceRetrievalOutput(
-            claim_id=claim.claim_id,
-            query_text=query.query_text,
-            retrieval_strategy="lexical_fallback",
-            items=lexical_items,
+        def fallback() -> EvidenceRetrievalOutput:
+            lexical_items = self._search_lexical(stage_input.query.query_text, stage_input.top_k)
+            return EvidenceRetrievalOutput(
+                claim_id=claim_id,
+                query_text=stage_input.query.query_text,
+                retrieval_strategy="lexical_fallback",
+                items=lexical_items,
+            )
+
+        return run_stage(
+            "evidence_retriever",
+            0,
+            primary,
+            fallback,
+            claim_id=claim_id,
         )
 
     def _search_dense(self, query: str, top_k: int) -> list[EvidenceItem]:

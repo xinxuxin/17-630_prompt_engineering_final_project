@@ -12,8 +12,8 @@ class MockLLMProvider(StructuredProvider):
         user_prompt: str,
         response_model: type[T],
         max_retries: int = 1,
-    ) -> T:
+    ) -> object:
         raise RuntimeError(
-            "Mock provider is intentionally non-generative. "
-            "The pipeline will fall back to deterministic heuristics."
+            "Mock provider does not call an external LLM. "
+            "Stages should fall back to deterministic logic."
         )

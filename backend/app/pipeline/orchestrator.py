@@ -1,54 +1,59 @@
-from time import perf_counter
-
 from app.core.settings import Settings
 from app.pipeline.claim_extractor import ClaimExtractor
-from app.pipeline.rewrite_generator import RewriteGenerator
-from app.pipeline.verdict_classifier import VerdictClassifier
+from app.pipeline.correction_rewriter import CorrectionRewriter
+from app.pipeline.evidence_reranker import EvidenceReranker
+from app.pipeline.evidence_retriever import EvidenceRetriever
+from app.pipeline.query_generator import QueryGenerator
+from app.pipeline.verifier import Verifier
 from app.providers.base import StructuredProvider
-from app.schemas.claims import AtomicClaim
+from app.schemas.claims import ClaimExtractionInput, QueryGenerationInput
 from app.schemas.common import StageStatus, StageTrace, VerdictLabel
+from app.schemas.correction import CorrectionRewriteInput
+from app.schemas.evidence import EvidenceRerankerInput, EvidenceRetrieverInput
 from app.schemas.pipeline import (
-    ClaimAssessment,
-    FactCheckRequest,
-    FactCheckResponse,
-    FactCheckSummary,
+    AnalyzeRequest,
+    AnalyzeResponse,
+    AnalysisSummary,
+    ClaimAnalysisResult,
+    PipelineMetadata,
 )
-from app.services.retrieval_service import RetrievalService
+from app.schemas.verification import VerificationInput
 from app.utils.experiment_io import write_experiment_output
 from app.utils.ids import new_run_id
 
 
-class FactCheckOrchestrator:
-    def __init__(
-        self,
-        settings: Settings,
-        provider: StructuredProvider,
-        retrieval_service: RetrievalService,
-    ) -> None:
+class PipelineOrchestrator:
+    def __init__(self, settings: Settings, provider: StructuredProvider) -> None:
         self.settings = settings
         self.provider = provider
-        self.retrieval_service = retrieval_service
         self.claim_extractor = ClaimExtractor(provider, settings.max_stage_retries)
-        self.verdict_classifier = VerdictClassifier(provider, settings)
-        self.rewrite_generator = RewriteGenerator(provider, settings.max_stage_retries)
+        self.query_generator = QueryGenerator(provider, settings.max_stage_retries)
+        self.evidence_retriever = EvidenceRetriever(settings)
+        self.evidence_reranker = EvidenceReranker(settings.conservative_nei_threshold)
+        self.verifier = Verifier(provider, settings)
+        self.correction_rewriter = CorrectionRewriter(provider, settings.max_stage_retries)
 
-    def run(self, request: FactCheckRequest) -> FactCheckResponse:
+    def run(self, request: AnalyzeRequest) -> AnalyzeResponse:
         run_id = new_run_id()
         stage_trace: list[StageTrace] = []
 
-        extraction_output, extraction_trace = self.claim_extractor.extract(
-            request.input_text,
-            max_claims=min(request.max_claims, self.settings.max_claims_per_request),
+        extraction_output, extraction_trace = self.claim_extractor.run(
+            ClaimExtractionInput(
+                source_text=request.input_text,
+                max_claims=min(request.max_claims, self.settings.max_claims_per_request),
+            )
         )
         stage_trace.append(extraction_trace)
 
-        claim_results: list[ClaimAssessment] = []
-        for claim in extraction_output.claims:
-            assessment, traces = self._assess_claim(claim, request)
-            claim_results.append(assessment)
-            stage_trace.extend(traces)
+        claim_results: list[ClaimAnalysisResult] = []
+        loops_used = min(1, self.settings.max_pipeline_loops)
 
-        summary = FactCheckSummary(
+        for claim in extraction_output.claims:
+            claim_result, claim_traces = self._analyze_claim(claim, request)
+            claim_results.append(claim_result)
+            stage_trace.extend(claim_traces)
+
+        summary = AnalysisSummary(
             total_claims=len(claim_results),
             supported=sum(1 for item in claim_results if item.label == VerdictLabel.SUPPORTED),
             refuted=sum(1 for item in claim_results if item.label == VerdictLabel.REFUTED),
@@ -57,64 +62,91 @@ class FactCheckOrchestrator:
             ),
         )
 
-        response = FactCheckResponse(
+        metadata = PipelineMetadata(
+            run_id=run_id,
+            dataset_name=request.dataset_name,
+            provider_name=self.provider.name,
+            provider_configured=self.provider.configured,
+            max_stage_retries=self.settings.max_stage_retries,
+            max_pipeline_loops=self.settings.max_pipeline_loops,
+            loops_used=loops_used,
+            total_stage_fallbacks=sum(
+                1 for trace in stage_trace if trace.status == StageStatus.FALLBACK
+            ),
+        )
+
+        response = AnalyzeResponse(
             run_id=run_id,
             dataset_name=request.dataset_name,
             input_text=request.input_text,
             claims=claim_results,
             stage_trace=stage_trace,
             summary=summary,
+            pipeline_metadata=metadata,
         )
         write_experiment_output(self.settings.fact_check_eval_root, response)
         return response
 
-    def _assess_claim(
+    def _analyze_claim(
         self,
-        claim: AtomicClaim,
-        request: FactCheckRequest,
-    ) -> tuple[ClaimAssessment, list[StageTrace]]:
-        traces: list[StageTrace] = []
-        retrieval_start = perf_counter()
-        evidence_bundle = self.retrieval_service.retrieve(
-            claim_id=claim.claim_id,
-            query=claim.text,
-            top_k=request.top_k_evidence,
+        claim,
+        request: AnalyzeRequest,
+    ) -> tuple[ClaimAnalysisResult, list[StageTrace]]:
+        claim_traces: list[StageTrace] = []
+
+        query_output, query_trace = self.query_generator.run(
+            QueryGenerationInput(claim=claim)
         )
-        traces.append(
-            StageTrace(
-                stage="evidence_retrieval",
-                status=StageStatus.SUCCESS if evidence_bundle.items else StageStatus.FALLBACK,
-                detail=(
-                    f"Retrieved {len(evidence_bundle.items)} evidence items."
-                    if evidence_bundle.items
-                    else "No dense or lexical evidence matched the claim."
-                ),
-                duration_ms=int((perf_counter() - retrieval_start) * 1000),
-                retries=0,
+        claim_traces.append(query_trace)
+
+        retrieval_output, retrieval_trace = self.evidence_retriever.run(
+            EvidenceRetrieverInput(
+                claim=claim,
+                query=query_output,
+                top_k=request.top_k_evidence,
             )
         )
-        classification_output, classification_trace = self.verdict_classifier.classify(
-            claim,
-            evidence_bundle,
+        claim_traces.append(retrieval_trace)
+
+        rerank_output, rerank_trace = self.evidence_reranker.run(
+            EvidenceRerankerInput(
+                claim=claim,
+                evidence_items=retrieval_output.items,
+                top_k=request.top_k_evidence,
+            )
         )
-        traces.append(classification_trace)
+        claim_traces.append(rerank_trace)
+
+        verification_output, verification_trace = self.verifier.run(
+            VerificationInput(
+                claim=claim,
+                evidence_items=rerank_output.items,
+            )
+        )
+        claim_traces.append(verification_trace)
 
         corrected_rewrite = None
         if request.include_rewrite:
-            corrected_rewrite, rewrite_trace = self.rewrite_generator.rewrite(
-                claim,
-                evidence_bundle,
-                classification_output.label,
+            corrected_rewrite, correction_trace = self.correction_rewriter.run(
+                CorrectionRewriteInput(
+                    claim=claim,
+                    verification=verification_output,
+                    evidence_items=rerank_output.items,
+                )
             )
-            traces.append(rewrite_trace)
+            claim_traces.append(correction_trace)
 
-        assessment = ClaimAssessment(
+        result = ClaimAnalysisResult(
             claim_id=claim.claim_id,
             claim_text=claim.text,
-            label=classification_output.label,
-            confidence=classification_output.confidence,
-            justification=classification_output.justification,
-            evidence=evidence_bundle.items,
+            query_text=query_output.query_text,
+            alternative_queries=query_output.alternative_queries,
+            label=verification_output.label,
+            confidence=verification_output.confidence,
+            rationale=verification_output.rationale,
+            justification=verification_output.rationale,
+            evidence=rerank_output.items,
             corrected_rewrite=corrected_rewrite,
+            stage_trace=claim_traces,
         )
-        return assessment, traces
+        return result, claim_traces

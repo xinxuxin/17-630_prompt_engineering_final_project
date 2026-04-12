@@ -1,56 +1,81 @@
-from app.schemas.claims import ClaimExtractionOutput
-from app.schemas.contracts import ClaimClassificationOutput, RewriteOutput
-from app.schemas.evidence import EvidenceBundle
+from pathlib import Path
+
+from app.schemas.claims import ClaimExtractionOutput, QueryGenerationOutput
+from app.schemas.correction import CorrectionRewriteOutput
+from app.schemas.evidence import EvidenceItem
+from app.schemas.verification import VerificationOutput
 from app.utils.json_schema import render_schema
+
+TEMPLATE_ROOT = Path(__file__).with_name("prompt_templates")
+
+
+def _load_template(filename: str) -> str:
+    return (TEMPLATE_ROOT / filename).read_text(encoding="utf-8")
+
+
+def _render_template(filename: str, **kwargs: object) -> str:
+    return _load_template(filename).format(**kwargs)
+
+
+def _evidence_block(items: list[EvidenceItem]) -> str:
+    return "\n\n".join(
+        f"- [{item.evidence_id}] {item.title}: {item.snippet}"
+        for item in items
+    ) or "- No evidence retrieved."
 
 
 def claim_extraction_prompts(max_claims: int, input_text: str) -> tuple[str, str]:
-    system_prompt = (
-        "You are a claim extraction agent. "
-        "Return only atomic factual claims that are independently checkable. "
-        "Do not include opinions, style judgments, or speculation. "
-        f"Return valid JSON matching this schema:\n{render_schema(ClaimExtractionOutput)}"
+    return (
+        _render_template(
+            "claim_extractor.system.md",
+            response_schema=render_schema(ClaimExtractionOutput),
+        ),
+        _render_template(
+            "claim_extractor.user.md",
+            max_claims=max_claims,
+            input_text=input_text,
+        ),
     )
-    user_prompt = (
-        f"Extract at most {max_claims} atomic factual claims from the text below.\n\n"
-        f"TEXT:\n{input_text}"
-    )
-    return system_prompt, user_prompt
 
 
-def classification_prompts(claim_text: str, evidence: EvidenceBundle) -> tuple[str, str]:
-    system_prompt = (
-        "You are a claim classification agent. "
-        "Use only the provided evidence. "
-        "If the evidence is weak, stale, or non-decisive, return not_enough_info. "
-        f"Return valid JSON matching this schema:\n{render_schema(ClaimClassificationOutput)}"
+def query_generation_prompts(claim_text: str) -> tuple[str, str]:
+    return (
+        _render_template(
+            "query_generator.system.md",
+            response_schema=render_schema(QueryGenerationOutput),
+        ),
+        _render_template("query_generator.user.md", claim_text=claim_text),
     )
-    evidence_block = "\n\n".join(
-        f"- [{item.evidence_id}] {item.title}: {item.snippet}"
-        for item in evidence.items
-    ) or "- No evidence retrieved."
-    user_prompt = (
-        f"Claim:\n{claim_text}\n\n"
-        f"Evidence:\n{evidence_block}\n\n"
-        "Classify the claim as supported, refuted, or not_enough_info."
-    )
-    return system_prompt, user_prompt
 
 
-def rewrite_prompts(claim_text: str, evidence: EvidenceBundle) -> tuple[str, str]:
-    system_prompt = (
-        "You are a corrective rewrite agent. "
-        "Make the minimum necessary edit to align the claim with the evidence. "
-        "If the evidence is not decisive, do not overcorrect. "
-        f"Return valid JSON matching this schema:\n{render_schema(RewriteOutput)}"
+def verification_prompts(claim_text: str, evidence_items: list[EvidenceItem]) -> tuple[str, str]:
+    return (
+        _render_template(
+            "verifier.system.md",
+            response_schema=render_schema(VerificationOutput),
+        ),
+        _render_template(
+            "verifier.user.md",
+            claim_text=claim_text,
+            evidence_block=_evidence_block(evidence_items),
+        ),
     )
-    evidence_block = "\n\n".join(
-        f"- [{item.evidence_id}] {item.title}: {item.snippet}"
-        for item in evidence.items
-    ) or "- No decisive evidence available."
-    user_prompt = (
-        f"Original claim:\n{claim_text}\n\n"
-        f"Evidence:\n{evidence_block}\n\n"
-        "Return the minimally edited rewrite."
+
+
+def correction_prompts(
+    claim_text: str,
+    label: str,
+    evidence_items: list[EvidenceItem],
+) -> tuple[str, str]:
+    return (
+        _render_template(
+            "correction_rewriter.system.md",
+            response_schema=render_schema(CorrectionRewriteOutput),
+        ),
+        _render_template(
+            "correction_rewriter.user.md",
+            claim_text=claim_text,
+            label=label,
+            evidence_block=_evidence_block(evidence_items),
+        ),
     )
-    return system_prompt, user_prompt

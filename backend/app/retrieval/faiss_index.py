@@ -68,6 +68,7 @@ class FaissDocumentIndex:
                     url=record.get("url"),
                     published_at=record.get("published_at"),
                     score=float(score),
+                    retrieval_score=float(score),
                     stance_hint=record.get("stance_hint"),
                 )
             )

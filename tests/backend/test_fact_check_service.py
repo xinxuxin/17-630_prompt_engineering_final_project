@@ -35,6 +35,15 @@ def test_fact_check_service_runs_end_to_end(tmp_path: Path) -> None:
     assert VerdictLabel.SUPPORTED in labels
     assert VerdictLabel.REFUTED in labels
     assert VerdictLabel.NOT_ENOUGH_INFO in labels
+    assert {trace.stage for trace in response.stage_trace} >= {
+        "claim_extractor",
+        "query_generator",
+        "evidence_retriever",
+        "evidence_reranker",
+        "verifier",
+        "correction_rewriter",
+    }
+    assert response.pipeline_metadata.total_stage_fallbacks >= 1
     assert any(
         output.name.endswith(".json")
         for output in (tmp_path / "eval" / "results").iterdir()

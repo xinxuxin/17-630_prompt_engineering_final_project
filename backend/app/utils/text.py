@@ -5,6 +5,34 @@ from collections.abc import Iterable
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 TOKEN_RE = re.compile(r"[a-z0-9]+")
 CLAIMED_SPLIT_RE = re.compile(r"^(?P<prefix>.*?\bclaimed\b\s+)(?P<left>.+?)\s+and\s+(?P<right>.+)$", re.IGNORECASE)
+STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "by",
+    "for",
+    "from",
+    "in",
+    "into",
+    "is",
+    "it",
+    "its",
+    "of",
+    "on",
+    "or",
+    "said",
+    "that",
+    "the",
+    "their",
+    "to",
+    "was",
+    "were",
+    "with",
+}
 
 
 def split_into_sentences(text: str) -> list[tuple[str, int, int]]:
@@ -56,3 +84,15 @@ def split_compound_claim(sentence: str) -> list[str]:
     left = match.group("left").strip().rstrip(".")
     right = match.group("right").strip()
     return [f"{prefix} {left}".strip(), f"{prefix} {right}".strip()]
+
+
+def extract_keywords(text: str, limit: int = 5) -> list[str]:
+    keywords: list[str] = []
+    for token in TOKEN_RE.findall(text.lower()):
+        if token in STOPWORDS or token.isdigit():
+            continue
+        if token not in keywords:
+            keywords.append(token)
+        if len(keywords) >= limit:
+            break
+    return keywords

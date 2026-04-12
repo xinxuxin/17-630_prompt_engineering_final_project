@@ -14,26 +14,25 @@ class StageStatus(StrEnum):
     FALLBACK = "fallback"
 
 
-class SourceSpan(BaseModel):
+class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+
+class SourceSpan(StrictModel):
     start: int = Field(ge=0)
     end: int = Field(ge=0)
 
 
-class Citation(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class Citation(StrictModel):
     evidence_id: str
     title: str
     url: str | None = None
 
 
-class StageTrace(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class StageTrace(StrictModel):
     stage: str
     status: StageStatus
     detail: str
     duration_ms: int = Field(ge=0)
     retries: int = Field(default=0, ge=0)
+    claim_id: str | None = None

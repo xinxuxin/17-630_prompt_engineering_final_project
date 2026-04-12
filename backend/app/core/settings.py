@@ -23,6 +23,10 @@ class Settings(BaseSettings):
         default="gpt-4.1-mini",
         validation_alias="FACT_CHECK_OPENAI_MODEL",
     )
+    openai_base_url: str | None = Field(
+        default=None,
+        validation_alias="FACT_CHECK_OPENAI_BASE_URL",
+    )
     openai_api_key: str | None = Field(
         default=None,
         validation_alias="FACT_CHECK_OPENAI_API_KEY",
