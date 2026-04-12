@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Play, Sparkles } from "lucide-react";
+import { ArrowRight, Play, Sparkles, Wand2 } from "lucide-react";
 
 import { ArchitecturePreview } from "@/components/landing/architecture-preview";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,22 @@ export function HeroSection() {
           pipeline stays visible, the evidence stays inspectable, and recent-news claims stay
           grounded in retrieved sources instead of stale model memory.
         </p>
+
+        <div className="mt-7 flex max-w-3xl flex-wrap gap-3">
+          {[
+            "Multi-stage orchestration stays visible",
+            "Claim-by-claim evidence review",
+            "Recent-news freshness is explicit",
+          ].map((item) => (
+            <div
+              key={item}
+              className="metric-pill inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-secondary-foreground"
+            >
+              <span className="signal-dot text-primary" />
+              {item}
+            </div>
+          ))}
+        </div>
 
         <div className="mt-9 flex flex-wrap gap-3">
           <Button asChild size="lg">
@@ -72,6 +88,24 @@ export function HeroSection() {
               </p>
             </motion.div>
           ))}
+        </div>
+
+        <div className="mt-8 rounded-[28px] border border-white/8 bg-white/4 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
+                Presentation framing
+              </p>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
+                The interface is designed so one slide can show the full story: input, staged reasoning,
+                retrieved evidence, verdicts, and a minimal corrected rewrite.
+              </p>
+            </div>
+            <div className="rounded-[22px] border border-primary/14 bg-primary/8 px-4 py-3 text-sm text-secondary-foreground">
+              <Wand2 className="mr-2 inline h-4 w-4 text-primary" />
+              Built for live demo and screenshots
+            </div>
+          </div>
         </div>
       </motion.div>
 

@@ -173,6 +173,58 @@ body {
     rgba(9, 19, 36, 0.9);
 }
 
+.presentation-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top, rgba(144, 195, 255, 0.12), transparent 42%),
+    rgba(6, 18, 34, 0.72);
+}
+
+.presentation-frame::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%);
+  content: "";
+  pointer-events: none;
+}
+
+.metric-pill {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+}
+
+.signal-dot {
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 16px currentColor;
+}
+
+.story-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(141, 199, 255, 0.35), transparent);
+}
+
+.pipeline-glow-line {
+  background: linear-gradient(180deg, rgba(141, 199, 255, 0.35), rgba(141, 199, 255, 0));
+}
+
+.confidence-shell {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.08), transparent 56%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.evidence-grid {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 14px 100%;
+}
+
 @keyframes float-orb {
   0%,
   100% {

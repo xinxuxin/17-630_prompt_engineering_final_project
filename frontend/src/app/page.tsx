@@ -1,3 +1,4 @@
+import { ExampleShowcaseSection } from "@/components/landing/example-showcase-section";
 import { EvaluationSection } from "@/components/landing/evaluation-section";
 import { HeroSection } from "@/components/landing/hero-section";
 import { PipelineSection } from "@/components/landing/pipeline-section";
@@ -10,6 +11,7 @@ export default function Home({}: PageProps<"/">) {
         <SiteHeader />
         <HeroSection />
       </div>
+      <ExampleShowcaseSection />
       <PipelineSection />
       <EvaluationSection />
     </main>

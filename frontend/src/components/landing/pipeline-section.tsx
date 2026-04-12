@@ -115,6 +115,30 @@ export function PipelineSection() {
           </Card>
         </div>
       </div>
+
+      <div className="mt-10 grid gap-4 md:grid-cols-3">
+        {[
+          {
+            title: "Decomposition creates interpretability",
+            body: "Each boundary is easier to validate than one monolithic prompt that hides its internal decisions.",
+          },
+          {
+            title: "Grounding reduces overconfident recent claims",
+            body: "Recent-news items stay tied to source metadata so the system can show what it actually retrieved.",
+          },
+          {
+            title: "The UI is part of the explanation",
+            body: "Cards, traces, and evidence layouts are intentionally arranged to support both live demo flow and slide screenshots.",
+          },
+        ].map((item) => (
+          <Card key={item.title} className="presentation-frame">
+            <CardContent className="p-6">
+              <p className="text-lg font-semibold text-foreground">{item.title}</p>
+              <p className="mt-3 text-sm leading-8 text-muted-foreground">{item.body}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </section>
   );
 }
