@@ -32,7 +32,7 @@ backend-check:
 	PYTHONPATH=backend $(VENV_PYTHON) -m compileall backend/app
 
 index:
-	PYTHONPATH=backend $(VENV_PYTHON) scripts/index_corpus.py
+	PYTHONPATH=backend $(VENV_PYTHON) scripts/build_index.py
 
 eval-benchmark:
 	PYTHONPATH=backend $(VENV_PYTHON) scripts/run_evaluation.py --config eval/configs/benchmark.yaml

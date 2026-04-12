@@ -9,9 +9,10 @@ from app.services.fact_check import FactCheckService
 def test_fact_check_service_runs_end_to_end(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[2]
     settings = Settings(
+        corpus_dir=repo_root / "data" / "corpus" / "demo",
         fact_check_data_root=repo_root / "data",
         fact_check_eval_root=tmp_path / "eval",
-        corpus_path=repo_root / "data" / "corpus" / "documents.jsonl",
+        corpus_path=tmp_path / "evidence_chunks.jsonl",
         retrieval_index_path=tmp_path / "faiss.index",
     )
     service = FactCheckService(settings)

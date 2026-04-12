@@ -1,14 +1,23 @@
 from app.core.settings import Settings
 from app.schemas.claims import AtomicClaim, QueryGenerationOutput
-from app.retrieval.corpus import load_corpus
-from app.retrieval.faiss_index import FaissDocumentIndex
 from app.schemas.evidence import EvidenceItem, EvidenceRetrievalOutput
-from app.utils.text import lexical_overlap
+from retrieval.chunking import ChunkingConfig
+from retrieval.retriever import LocalEvidenceRetriever
 
 
 class RetrievalService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
+        self.retriever = LocalEvidenceRetriever(
+            corpus_dir=settings.corpus_dir,
+            chunk_manifest_path=settings.corpus_path,
+            index_path=settings.retrieval_index_path,
+            model_name=settings.sentence_transformer_model,
+            chunking_config=ChunkingConfig(
+                chunk_size_words=settings.chunk_size_words,
+                chunk_overlap_words=settings.chunk_overlap_words,
+            ),
+        )
 
     def retrieve(
         self,
@@ -16,50 +25,10 @@ class RetrievalService:
         query: QueryGenerationOutput,
         top_k: int,
     ) -> EvidenceRetrievalOutput:
-        dense_items = self._search_dense(query.query_text, top_k)
-        if dense_items:
-            return EvidenceRetrievalOutput(
-                claim_id=claim.claim_id,
-                query_text=query.query_text,
-                retrieval_strategy="dense",
-                items=dense_items,
-            )
-
-        lexical_items = self._search_lexical(query.query_text, top_k)
+        items, strategy = self.retriever.retrieve(query.query_text, top_k)
         return EvidenceRetrievalOutput(
             claim_id=claim.claim_id,
             query_text=query.query_text,
-            retrieval_strategy="lexical_fallback",
-            items=lexical_items,
+            retrieval_strategy=strategy,
+            items=items,
         )
-
-    def _search_dense(self, query: str, top_k: int) -> list[EvidenceItem]:
-        try:
-            index = FaissDocumentIndex(
-                self.settings.retrieval_index_path,
-                self.settings.sentence_transformer_model,
-            )
-            return index.search(query, top_k)
-        except RuntimeError:
-            return []
-
-    def _search_lexical(self, query: str, top_k: int) -> list[EvidenceItem]:
-        scored_items: list[EvidenceItem] = []
-        for document in load_corpus(self.settings.corpus_path):
-            score = lexical_overlap(query, document.text)
-            if score <= 0:
-                continue
-            scored_items.append(
-                EvidenceItem(
-                    evidence_id=document.document_id,
-                    title=document.title,
-                    snippet=document.text[:320],
-                    url=document.url,
-                    published_at=document.published_at,
-                    score=score,
-                    retrieval_score=score,
-                    stance_hint=document.stance_hint,
-                )
-            )
-        scored_items.sort(key=lambda item: item.retrieval_score, reverse=True)
-        return scored_items[:top_k]

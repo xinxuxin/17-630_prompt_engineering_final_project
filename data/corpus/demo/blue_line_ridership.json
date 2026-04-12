@@ -1,0 +1,11 @@
+{
+  "document_id": "doc_blue_line_ridership",
+  "title": "Transit Ridership Dashboard",
+  "text": "Average weekday ridership increased by roughly 24 percent during the first month of Blue Line extension service. The public dashboard does not report a doubling in ridership during that period.",
+  "url": "https://city.example/transit/ridership-dashboard",
+  "published_at": "2025-10-10",
+  "stance_hint": "refutes",
+  "metadata": {
+    "source_name": "City Transit Dashboard"
+  }
+}

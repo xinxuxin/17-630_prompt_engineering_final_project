@@ -43,6 +43,30 @@ Recommended core metrics:
 - rewrite acceptability
 - conservative `NEI` rate on low-evidence examples
 
+## Retrieval Notes
+
+Retrieval quality strongly affects everything downstream.
+
+In this repository, weak retrieval can cause:
+
+- false `not_enough_info` labels even when relevant evidence exists
+- false support when topical but non-decisive chunks are retrieved
+- brittle rewrites that quote a nearby but incorrect passage
+
+That is why the project separates:
+
+- document ingestion
+- chunking
+- dense retrieval
+- reranking
+- final verification
+
+For the final presentation/report, it is useful to show at least one example where:
+
+- better chunking improves evidence specificity
+- better retrieval improves verdict accuracy
+- poor retrieval propagates into a downstream verification failure
+
 ## Positive Evidence
 
 Examples to surface in the final presentation/report:

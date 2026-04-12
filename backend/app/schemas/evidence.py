@@ -6,10 +6,14 @@ from app.schemas.common import StrictModel
 
 class EvidenceItem(StrictModel):
     evidence_id: str
+    chunk_id: str | None = None
+    source_document_id: str | None = None
     title: str
     snippet: str
     url: str | None = None
     published_at: str | None = None
+    source_path: str | None = None
+    source_type: str | None = None
     score: float = Field(default=0.0, ge=0.0)
     retrieval_score: float = Field(default=0.0, ge=0.0)
     rerank_score: float | None = Field(default=None, ge=0.0)

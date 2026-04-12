@@ -36,6 +36,10 @@ class Settings(BaseSettings):
         default=None,
         validation_alias="FACT_CHECK_DATA_ROOT",
     )
+    corpus_dir: Path | None = Field(
+        default=None,
+        validation_alias="FACT_CHECK_CORPUS_DIR",
+    )
     fact_check_eval_root: Path | None = Field(
         default=None,
         validation_alias="FACT_CHECK_EVAL_ROOT",
@@ -51,6 +55,24 @@ class Settings(BaseSettings):
     sentence_transformer_model: str = Field(
         default="all-MiniLM-L6-v2",
         validation_alias="FACT_CHECK_SENTENCE_TRANSFORMER_MODEL",
+    )
+    chunk_size_words: int = Field(
+        default=110,
+        ge=40,
+        le=400,
+        validation_alias="FACT_CHECK_CHUNK_SIZE_WORDS",
+    )
+    chunk_overlap_words: int = Field(
+        default=25,
+        ge=0,
+        le=120,
+        validation_alias="FACT_CHECK_CHUNK_OVERLAP_WORDS",
+    )
+    retrieval_candidate_pool: int = Field(
+        default=8,
+        ge=2,
+        le=20,
+        validation_alias="FACT_CHECK_RETRIEVAL_CANDIDATE_POOL",
     )
 
     max_claims_per_request: int = Field(
@@ -87,10 +109,12 @@ class Settings(BaseSettings):
 
         if self.fact_check_data_root is None:
             self.fact_check_data_root = repo_root / "data"
+        if self.corpus_dir is None:
+            self.corpus_dir = self.fact_check_data_root / "corpus" / "demo"
         if self.fact_check_eval_root is None:
             self.fact_check_eval_root = repo_root / "eval"
         if self.corpus_path is None:
-            self.corpus_path = self.fact_check_data_root / "corpus" / "documents.jsonl"
+            self.corpus_path = self.fact_check_data_root / "processed" / "evidence_chunks.jsonl"
         if self.retrieval_index_path is None:
             self.retrieval_index_path = self.fact_check_data_root / "corpus" / "faiss.index"
 

@@ -1,0 +1,11 @@
+{
+  "document_id": "doc_riverdale_grant",
+  "title": "Riverdale Grant Announcement",
+  "text": "Riverdale University received a $900,000 state clean-energy grant to support the solar expansion. The announcement says the project combined institutional funding with a state grant, contradicting claims that no state funding was involved.",
+  "url": "https://example.edu/riverdale/grant-announcement",
+  "published_at": "2024-08-12",
+  "stance_hint": "refutes",
+  "metadata": {
+    "source_name": "State Energy Office"
+  }
+}
