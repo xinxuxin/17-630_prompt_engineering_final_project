@@ -1,67 +1,90 @@
-import { BarChart3, BookOpenText, FlaskConical, Newspaper } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, TrendingUp } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-const cards = [
-  {
-    icon: FlaskConical,
-    title: "Prompt Engineering In The Small",
-    description:
-      "Prompt files, schema contracts, retries, and validation hooks are first-class parts of the repository.",
-  },
-  {
-    icon: Newspaper,
-    title: "Recent-News Evaluation Support",
-    description:
-      "The repo cleanly separates benchmark-style testing from recent headline collections where stale pretraining becomes a real issue.",
-  },
-  {
-    icon: BarChart3,
-    title: "Positive And Negative Evidence",
-    description:
-      "Evaluation materials are structured to preserve both strong cases and important failure cases for the report.",
-  },
-  {
-    icon: BookOpenText,
-    title: "Presentation And Report Ready",
-    description:
-      "Architecture docs, prompt design notes, a demo script, and sample outputs support the final submission package.",
-  },
-];
+import { SectionHeading } from "@/components/shared/section-heading";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { evaluationTracks } from "@/lib/demo-data";
 
 export function EvaluationSection() {
   return (
     <section className="mx-auto w-full max-w-7xl px-6 pb-24 lg:px-10">
-      <div className="mb-10 flex max-w-3xl flex-col gap-4">
-        <p className="text-sm font-semibold tracking-[0.2em] text-primary uppercase">
-          Evaluation + Deliverables
-        </p>
-        <h2 className="text-3xl font-semibold tracking-tight">
-          Built for a demo, a report, and an honest analysis of failure.
-        </h2>
-        <p className="text-base leading-7 text-muted-foreground">
-          The repository structure is intentionally aligned with course deliverables:
-          evaluation configs, recent-news support, prompt notes, sample outputs, and
-          experiment logs are all part of the first commit.
-        </p>
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <SectionHeading
+          eyebrow="Evaluation View"
+          title="Baseline versus multi-stage, in a format that is easy to show on slides."
+          description="The frontend includes a presentation-ready evaluation view with benchmark and recent-news tracks, summary metrics, and success and failure case studies."
+          className="max-w-3xl"
+        />
+        <Button asChild size="lg" variant="secondary">
+          <Link href="/results">
+            Open Results View
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => (
-          <Card key={card.title}>
-            <CardHeader>
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
-                <card.icon className="h-5 w-5" />
-              </div>
-              <CardTitle>{card.title}</CardTitle>
-              <CardDescription>{card.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Repository materials are ready to be expanded into slides, a short report, and a clean submission URL.
-            </CardContent>
-          </Card>
-        ))}
+      <div className="mt-12 grid gap-6 lg:grid-cols-2">
+        {evaluationTracks.map((track) => {
+          const accuracyDelta = Math.round(
+            (track.multistage.accuracy - track.baseline.accuracy) * 100,
+          );
+          return (
+            <Card key={track.id} className="overflow-hidden">
+              <CardContent className="p-6 sm:p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="eyebrow">{track.title}</div>
+                    <h3 className="mt-4 text-2xl font-semibold text-foreground">
+                      {track.description}
+                    </h3>
+                  </div>
+                  <div className="rounded-full border border-emerald-400/15 bg-emerald-400/8 px-4 py-2 text-sm font-semibold text-emerald-200">
+                    +{accuracyDelta} pts acc.
+                  </div>
+                </div>
+
+                <p className="mt-5 text-sm leading-7 text-muted-foreground">
+                  {track.challenge}
+                </p>
+
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  {[track.baseline, track.multistage].map((run) => (
+                    <div
+                      key={run.label}
+                      className="rounded-[24px] border border-white/8 bg-white/4 p-4"
+                    >
+                      <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                        {run.label}
+                      </p>
+                      <div className="mt-4 grid gap-3">
+                        <Metric label="Accuracy" value={`${Math.round(run.accuracy * 100)}%`} />
+                        <Metric label="Macro F1" value={run.macroF1.toFixed(2)} />
+                        <Metric label="Recall@K" value={run.recallAtK.toFixed(2)} />
+                        <Metric label="NEI Rate" value={`${Math.round(run.predictedNeiRate * 100)}%`} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 flex items-start gap-3 rounded-[22px] border border-primary/15 bg-primary/8 p-4 text-sm leading-7 text-secondary-foreground">
+                  <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <p>{track.highlight}</p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </section>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="metric-value text-sm font-semibold text-foreground">{value}</span>
+    </div>
   );
 }

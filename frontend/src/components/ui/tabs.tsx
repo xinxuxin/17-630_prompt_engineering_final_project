@@ -19,7 +19,7 @@ export function TabsList({
   return (
     <TabsPrimitive.List
       className={cn(
-        "inline-flex w-fit rounded-full bg-white/60 p-1 ring-1 ring-border",
+        "inline-flex w-fit rounded-full bg-white/4 p-1 ring-1 ring-white/8",
         className,
       )}
       {...props}
