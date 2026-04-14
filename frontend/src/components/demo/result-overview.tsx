@@ -36,7 +36,7 @@ export function ResultOverview({ result, sourceMode }: ResultOverviewProps) {
         <CardContent className="flex h-full min-w-[220px] flex-col justify-between p-5">
           <div>
             <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
-              Response Source
+              Mode
             </p>
             <div className="mt-3">
               <Badge variant={sourceMode === "live" ? "supported" : "nei"}>
@@ -49,18 +49,15 @@ export function ResultOverview({ result, sourceMode }: ResultOverviewProps) {
             </div>
           </div>
 
-          <div className="mt-6 text-sm leading-7 text-muted-foreground">
+          <div className="mt-6 text-sm leading-6 text-secondary-foreground">
             {result.pipeline_metadata ? (
               <>
-                Provider <span className="text-foreground">{result.pipeline_metadata.provider_name}</span>
+                {result.pipeline_metadata.provider_name}
                 {" · "}
-                Fallbacks{" "}
-                <span className="metric-value text-foreground">
-                  {result.pipeline_metadata.total_stage_fallbacks}
-                </span>
+                fallback {result.pipeline_metadata.total_stage_fallbacks}
               </>
             ) : (
-              "Presentation-safe local sample loaded."
+              "Presentation-safe sample."
             )}
           </div>
         </CardContent>

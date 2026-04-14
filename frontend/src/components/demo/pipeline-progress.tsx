@@ -24,6 +24,14 @@ const iconMap = {
   corrective_rewrite: Sparkles,
 };
 
+const stageCaptions: Record<string, string> = {
+  claim_extraction: "Split input",
+  query_generation: "Form queries",
+  evidence_retrieval: "Retrieve evidence",
+  verdict_classification: "Assign verdict",
+  corrective_rewrite: "Rewrite if needed",
+};
+
 type PipelineProgressProps = {
   isRunning: boolean;
   activeIndex: number;
@@ -38,7 +46,7 @@ export function PipelineProgress({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Pipeline Progress</CardTitle>
+        <CardTitle>Pipeline</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
         {architectureStages.map((stage, index) => {
@@ -55,7 +63,7 @@ export function PipelineProgress({
             <motion.div
               key={stage.id}
               layout
-              className="rounded-[24px] border border-white/8 bg-white/4 p-4"
+              className="rounded-[24px] border border-white/10 bg-[rgba(9,24,44,0.9)] p-4"
             >
               <div className="flex items-start gap-4">
                 <motion.div
@@ -65,7 +73,7 @@ export function PipelineProgress({
                       : { scale: 1 }
                   }
                   transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.8 }}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/6 text-primary"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[rgba(10,24,42,0.95)] text-primary"
                 >
                   <Icon className="h-4.5 w-4.5" />
                 </motion.div>
@@ -73,14 +81,14 @@ export function PipelineProgress({
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">{stage.title}</p>
-                      <p className="mt-1 text-xs tracking-[0.18em] text-muted-foreground uppercase">
-                        {stage.output}
+                      <p className="mt-1 text-xs tracking-[0.18em] text-secondary-foreground uppercase">
+                        {stageCaptions[stage.id]}
                       </p>
                     </div>
                     <StatusBadge status={status} trace={trace} />
                   </div>
-                  <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                    {trace?.detail ?? stage.description}
+                  <p className="mt-3 text-sm leading-6 text-secondary-foreground">
+                    {trace?.detail ?? stage.output}
                   </p>
                   <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/6">
                     <motion.div

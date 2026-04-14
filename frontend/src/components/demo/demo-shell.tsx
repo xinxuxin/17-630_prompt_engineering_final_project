@@ -41,7 +41,7 @@ export function DemoShell() {
   );
   const [sourceMode, setSourceMode] = useState<"sample" | "live" | "fallback">("sample");
   const [statusMessage, setStatusMessage] = useState(
-    "A curated presentation sample is loaded by default. You can run the backend or keep the safe local mode.",
+    "Presentation sample loaded.",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -78,27 +78,27 @@ export function DemoShell() {
       return;
     }
 
-    startTransition(() => {
-      setSelectedCase(requestedCase);
-      setInputText(requestedCase.inputText);
-      setResult(getLocalSample(requestedCase.id));
-      setSourceMode("sample");
-      setStatusMessage("Loaded a presentation-safe sample from the landing page.");
-      setErrorMessage(null);
-    });
+        startTransition(() => {
+          setSelectedCase(requestedCase);
+          setInputText(requestedCase.inputText);
+          setResult(getLocalSample(requestedCase.id));
+          setSourceMode("sample");
+          setStatusMessage("Sample loaded from the landing page.");
+          setErrorMessage(null);
+        });
   }, [searchParams]);
 
   async function handleRun() {
     setIsRunning(true);
     setErrorMessage(null);
-    setStatusMessage("Running the full pipeline and updating the stage progress as results arrive.");
+    setStatusMessage("Running pipeline...");
 
     try {
       const liveResult = await runFactCheckRequest(inputText, selectedCase.dataset);
       startTransition(() => {
         setResult(liveResult);
         setSourceMode("live");
-        setStatusMessage("Live backend response loaded successfully.");
+        setStatusMessage("Live response loaded.");
       });
     } catch {
       const fallback = getLocalSample(selectedCase.id);
@@ -106,15 +106,13 @@ export function DemoShell() {
         startTransition(() => {
           setResult(fallback);
           setSourceMode("fallback");
-          setStatusMessage(
-            "Backend unavailable. The UI fell back to a curated local sample so the demo remains stable.",
-          );
+          setStatusMessage("Backend unavailable. Switched to local sample.");
         });
       } else {
         startTransition(() => {
           setResult(null);
-          setErrorMessage("The backend request failed and no local sample was available for this input.");
-          setStatusMessage("The run could not be completed.");
+          setErrorMessage("Backend request failed.");
+          setStatusMessage("Run unavailable.");
         });
       }
     } finally {
@@ -129,7 +127,7 @@ export function DemoShell() {
       setInputText(exampleCase.inputText);
       setResult(getLocalSample(exampleCase.id));
       setSourceMode("sample");
-      setStatusMessage("Loaded a curated example input and presentation-safe sample output.");
+      setStatusMessage("Sample loaded.");
       setErrorMessage(null);
     });
   }
@@ -149,46 +147,45 @@ export function DemoShell() {
         <Card className="h-fit">
           <CardHeader>
             <div className="eyebrow">Interactive Demo</div>
-            <CardTitle className="mt-5 text-3xl">Run the pipeline live or stay in safe presentation mode.</CardTitle>
-            <CardDescription className="text-base">
-              Choose an example, edit the input, and inspect how the multi-stage system responds claim by claim.
+            <CardTitle className="mt-5 text-3xl">Run a paragraph through the pipeline.</CardTitle>
+            <CardDescription className="text-base text-secondary-foreground">
+              Choose, edit, run, present.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-3">
-              {exampleCases.map((exampleCase) => (
-                <button
-                  key={exampleCase.id}
-                  type="button"
-                  onClick={() => handleSelect(exampleCase)}
-                  className={`w-full rounded-[24px] border p-4 text-left transition-all ${
-                    selectedCase.id === exampleCase.id
-                      ? "border-primary/30 bg-primary/8 shadow-[0_20px_45px_rgba(0,0,0,0.18)]"
-                      : "border-white/8 bg-white/4 hover:bg-white/6"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold text-foreground">{exampleCase.title}</p>
-                    <Badge
-                      variant={
-                        exampleCase.dataset === "benchmark"
-                          ? "supported"
-                          : exampleCase.dataset === "recent_news"
-                            ? "refuted"
-                            : "nei"
-                      }
-                    >
-                      {exampleCase.dataset}
-                    </Badge>
-                  </div>
-                  <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                    {exampleCase.blurb}
-                  </p>
-                  <p className="mt-3 text-xs font-medium tracking-[0.16em] text-primary uppercase">
-                    {exampleCase.highlight}
-                  </p>
-                </button>
-              ))}
+              <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+                Example
+              </p>
+              <div className="grid gap-3">
+                {exampleCases.map((exampleCase) => (
+                  <button
+                    key={exampleCase.id}
+                    type="button"
+                    onClick={() => handleSelect(exampleCase)}
+                    className={`w-full rounded-[22px] border px-4 py-3 text-left transition-all ${
+                      selectedCase.id === exampleCase.id
+                        ? "border-primary/30 bg-primary/10 shadow-[0_20px_45px_rgba(0,0,0,0.18)]"
+                        : "border-white/10 bg-[rgba(10,24,42,0.9)] hover:bg-[rgba(12,28,48,0.95)]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-foreground">{exampleCase.title}</p>
+                      <Badge
+                        variant={
+                          exampleCase.dataset === "benchmark"
+                            ? "supported"
+                            : exampleCase.dataset === "recent_news"
+                              ? "refuted"
+                              : "nei"
+                        }
+                      >
+                        {exampleCase.dataset}
+                      </Badge>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -210,6 +207,9 @@ export function DemoShell() {
                 onChange={(event) => setInputText(event.target.value)}
                 placeholder="Paste a paragraph or write your own fact-check target."
               />
+              <div className="rounded-[18px] border border-white/10 bg-[rgba(8,20,36,0.88)] px-4 py-3 text-sm leading-6 text-secondary-foreground">
+                {selectedCase.highlight}
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -236,8 +236,8 @@ export function DemoShell() {
               </Button>
             </div>
 
-            <div className="rounded-[24px] border border-white/8 bg-white/4 p-4">
-              <p className="text-sm leading-7 text-muted-foreground">{statusMessage}</p>
+            <div className="rounded-[24px] border border-white/10 bg-[rgba(9,24,44,0.9)] p-4">
+              <p className="text-sm leading-6 text-secondary-foreground">{statusMessage}</p>
               {errorMessage ? (
                 <div className="mt-4 flex items-start gap-3 rounded-[18px] border border-[#72322a] bg-[rgba(226,102,73,0.12)] p-3 text-sm text-[#ffd1c7]">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -269,13 +269,13 @@ export function DemoShell() {
             <div>
               <div className="eyebrow">Analysis Workspace</div>
               <h2 className="mt-4 text-3xl font-semibold text-foreground">
-                Inspect verdicts, evidence, and pipeline metadata.
+                Claims, evidence, trace.
               </h2>
             </div>
             <TabsList>
-              <TabsTrigger value="results">Claim Results</TabsTrigger>
-              <TabsTrigger value="trace">Pipeline Trace</TabsTrigger>
-              <TabsTrigger value="metadata">Run Metadata</TabsTrigger>
+              <TabsTrigger value="results">Claims</TabsTrigger>
+              <TabsTrigger value="trace">Trace</TabsTrigger>
+              <TabsTrigger value="metadata">Meta</TabsTrigger>
             </TabsList>
           </div>
 
@@ -354,8 +354,8 @@ function EmptyState({ compact = false }: { compact?: boolean }) {
           <Sparkles className="h-5 w-5" />
         </div>
         <p className="mt-4 text-lg font-semibold text-foreground">No analysis loaded yet.</p>
-        <p className="mt-2 max-w-lg text-center text-sm leading-7 text-muted-foreground">
-          Load an example or run the pipeline to populate this workspace with claims, evidence cards, and stage traces.
+        <p className="mt-2 max-w-lg text-center text-sm leading-6 text-secondary-foreground">
+          Load an example or run the pipeline.
         </p>
       </CardContent>
     </Card>

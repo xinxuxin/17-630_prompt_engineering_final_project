@@ -30,6 +30,9 @@ export function SiteHeader({ compact = false }: SiteHeaderProps) {
           <Link href="/">Overview</Link>
         </Button>
         <Button asChild variant="ghost">
+          <Link href="/showcase">Showcase</Link>
+        </Button>
+        <Button asChild variant="ghost">
           <Link href="/results">Results</Link>
         </Button>
         <Button asChild variant="secondary">

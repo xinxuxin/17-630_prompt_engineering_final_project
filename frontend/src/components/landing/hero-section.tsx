@@ -31,10 +31,8 @@ export function HeroSection() {
           A premium interface for <span className="text-gradient">multi-stage, evidence-grounded</span>{" "}
           fact checking.
         </h1>
-        <p className="mt-7 max-w-2xl text-lg leading-8 text-muted-foreground">
-          This UI is built to explain the system clearly under presentation pressure: the
-          pipeline stays visible, the evidence stays inspectable, and recent-news claims stay
-          grounded in retrieved sources instead of stale model memory.
+        <p className="mt-7 max-w-2xl text-lg leading-8 text-secondary-foreground">
+          Built for a final presentation: clear flow, visible evidence, and grounded recent-claim analysis.
         </p>
 
         <div className="mt-7 flex max-w-3xl flex-wrap gap-3">
@@ -66,6 +64,12 @@ export function HeroSection() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          <Button asChild size="lg" variant="secondary">
+            <Link href="/showcase">
+              Showcase Mode
+              <Wand2 className="h-4 w-4" />
+            </Link>
+          </Button>
           <Button asChild size="lg" variant="ghost">
             <a href="#architecture">View Pipeline</a>
           </Button>
@@ -78,7 +82,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12 + index * 0.06, duration: 0.42 }}
-              className="surface-outline rounded-[24px] border border-white/8 bg-white/4 p-5 backdrop-blur-md"
+              className="surface-outline rounded-[24px] border border-white/10 bg-[rgba(9,24,44,0.9)] p-5 backdrop-blur-md"
             >
               <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                 {stat.label}
@@ -90,15 +94,14 @@ export function HeroSection() {
           ))}
         </div>
 
-        <div className="mt-8 rounded-[28px] border border-white/8 bg-white/4 p-5">
+        <div className="mt-8 rounded-[28px] border border-white/10 bg-[rgba(9,24,44,0.9)] p-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
                 Presentation framing
               </p>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-                The interface is designed so one slide can show the full story: input, staged reasoning,
-                retrieved evidence, verdicts, and a minimal corrected rewrite.
+              <p className="mt-3 max-w-xl text-sm leading-6 text-secondary-foreground">
+                One slide can show the whole story: input, stages, evidence, verdict, rewrite.
               </p>
             </div>
             <div className="rounded-[22px] border border-primary/14 bg-primary/8 px-4 py-3 text-sm text-secondary-foreground">

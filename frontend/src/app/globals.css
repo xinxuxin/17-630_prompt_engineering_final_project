@@ -3,12 +3,12 @@
 :root {
   --background: #07111f;
   --foreground: #f3f7ff;
-  --card: rgba(9, 22, 40, 0.72);
+  --card: rgba(8, 19, 35, 0.88);
   --card-foreground: #f3f7ff;
   --muted: rgba(123, 145, 178, 0.16);
-  --muted-foreground: #9dafcf;
-  --border: rgba(140, 161, 195, 0.17);
-  --input: rgba(6, 18, 34, 0.86);
+  --muted-foreground: #bfd0eb;
+  --border: rgba(150, 172, 208, 0.24);
+  --input: rgba(6, 18, 34, 0.94);
   --primary: #8dc7ff;
   --primary-foreground: #03111f;
   --secondary: rgba(120, 184, 255, 0.12);
@@ -71,8 +71,8 @@ body {
   background: var(--card);
   backdrop-filter: blur(22px);
   box-shadow:
-    0 30px 80px rgba(1, 6, 17, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 30px 80px rgba(1, 6, 17, 0.56),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .grid-fade {
@@ -179,8 +179,8 @@ body {
   border-radius: 2rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
-    radial-gradient(circle at top, rgba(144, 195, 255, 0.12), transparent 42%),
-    rgba(6, 18, 34, 0.72);
+    radial-gradient(circle at top, rgba(144, 195, 255, 0.14), transparent 42%),
+    rgba(6, 18, 34, 0.9);
 }
 
 .presentation-frame::after {
@@ -192,8 +192,8 @@ body {
 }
 
 .metric-pill {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
   backdrop-filter: blur(16px);
 }
 
@@ -216,8 +216,8 @@ body {
 
 .confidence-shell {
   background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.08), transparent 56%),
-    rgba(255, 255, 255, 0.04);
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.1), transparent 56%),
+    rgba(255, 255, 255, 0.06);
 }
 
 .evidence-grid {
