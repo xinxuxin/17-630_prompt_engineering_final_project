@@ -12,8 +12,8 @@ export function EvaluationSection() {
       <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
         <SectionHeading
           eyebrow="Evaluation View"
-          title="Baseline versus multi-stage, in a format that is easy to show on slides."
-          description="The frontend includes a presentation-ready evaluation view with benchmark and recent-news tracks, summary metrics, and success and failure case studies."
+          title="Baseline versus multi-stage, benchmark versus recent-news."
+          description="The evaluation view compares both tracks with summary metrics and representative success and failure cases."
           className="max-w-3xl"
         />
         <Button asChild size="lg" variant="secondary">

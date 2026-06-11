@@ -59,9 +59,9 @@ export function PresentationCaseShell() {
       >
         <Card className="presentation-frame overflow-hidden">
           <CardHeader>
-            <div className="eyebrow">Showcase Mode</div>
+            <div className="eyebrow">Focused View</div>
             <CardTitle className="mt-5 text-4xl text-foreground">
-              One strong example for a live presentation.
+              One strong example, fully expanded.
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -133,7 +133,7 @@ export function PresentationCaseShell() {
             </div>
             <div className="metric-pill inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm text-secondary-foreground">
               <Sparkles className="h-4 w-4 text-primary" />
-              Slide-ready layout
+              Focused analysis
             </div>
           </div>
 

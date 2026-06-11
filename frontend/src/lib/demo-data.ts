@@ -78,7 +78,7 @@ export const exampleCases: ExampleCase[] = [
       "A custom-style input blending campus funding, transit statistics, and an ambiguous outcome claim.",
     inputText:
       "Analysts said Riverdale's solar expansion used no state funding. A transit bulletin also said weekday ridership on the Blue Line doubled in month one. Commentary further claimed the extension immediately produced a budget surplus.",
-    highlight: "Best for live editing during the presentation.",
+    highlight: "Best for live editing and mixed-claim analysis.",
   },
 ];
 
@@ -160,7 +160,7 @@ export const evaluationCaseStudies: EvaluationCaseStudy[] = [
     multistageOutcome:
       "Returned not_enough_info because the evidence lacked the statewide first-place comparison.",
     whyItMatters:
-      "The explicit NEI guardrail is visible and easy to defend during a presentation.",
+      "The explicit NEI guardrail keeps the system from overstating what the evidence actually proves.",
   },
   {
     id: "case_retrieval_gap",

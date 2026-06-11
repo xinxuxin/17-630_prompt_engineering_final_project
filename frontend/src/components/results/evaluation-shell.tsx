@@ -41,7 +41,7 @@ export function EvaluationShell() {
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-8 lg:px-10">
       <SectionHeading
         eyebrow="Evaluation / Results"
-        title="A presentation-ready view of what the multi-stage system improves, and where it still fails."
+        title="A compact view of what the multi-stage system improves, and where it still fails."
         description="This page is designed for fast explanation under time pressure: key deltas are visible immediately, then each track drills down into metrics and case studies."
       />
 

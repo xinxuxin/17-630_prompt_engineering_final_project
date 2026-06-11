@@ -22,7 +22,7 @@ export function PipelineSection() {
       <SectionHeading
         eyebrow="About Architecture"
         title="A visual flow that explains the system without hiding the engineering."
-        description="The architecture is intentionally presentation-friendly: each stage exposes a narrow responsibility, a structured output, and a clear handoff to the next stage. That makes the system easier to debug, easier to evaluate, and easier to explain."
+        description="Each stage exposes a narrow responsibility, a structured output, and a clear handoff to the next stage. That makes the system easier to debug, evaluate, and explain."
       />
 
       <div className="mt-12 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -128,7 +128,7 @@ export function PipelineSection() {
           },
           {
             title: "The UI is part of the explanation",
-            body: "Cards, traces, and evidence layouts are intentionally arranged to support both live demo flow and slide screenshots.",
+            body: "Cards, traces, and evidence layouts are arranged to keep the system state visible during exploration.",
           },
         ].map((item) => (
           <Card key={item.title} className="presentation-frame">

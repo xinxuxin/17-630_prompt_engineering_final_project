@@ -15,8 +15,8 @@ export function ExampleShowcaseSection() {
     <section className="mx-auto w-full max-w-7xl px-6 py-8 lg:px-10 lg:py-10">
       <SectionHeading
         eyebrow="Example Showcase"
-        title="Three curated inputs, already framed for a clean live demo or slide screenshot."
-        description="Each sample is tuned to tell a different story: a benchmark walkthrough, a recent-news retrieval stress test, and a flexible custom stack for live editing."
+        title="Three curated inputs for benchmark, recent-news, and custom analysis."
+        description="Each sample emphasizes a different use case: controlled comparison, freshness stress testing, and flexible custom editing."
       />
 
       <div className="mt-12 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
@@ -128,9 +128,9 @@ export function ExampleShowcaseSection() {
             body="The recent-news sample highlights the exact course argument: stale model memory is not enough, so the UI keeps source dates and evidence snippets visible."
           />
           <StoryCard
-            eyebrow="Screenshot Story"
-            title="Composed for slides, not just interaction"
-            body="Cards, spacing, and motion are deliberately tuned so a single screenshot still tells a coherent story when dropped into a presentation deck."
+            eyebrow="Interface Story"
+            title="Designed for clarity, not clutter"
+            body="Cards, spacing, and motion are tuned to keep the workflow readable as the interface grows more detailed."
           />
         </div>
       </div>

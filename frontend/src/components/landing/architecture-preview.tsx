@@ -22,11 +22,11 @@ const icons = {
 };
 
 const stageNotes: Record<string, string> = {
-  claim_extraction: "Atomic claims",
-  query_generation: "Search-ready queries",
-  evidence_retrieval: "Evidence + rerank",
-  verdict_classification: "Supported / Refuted / NEI",
-  corrective_rewrite: "Minimal cited rewrite",
+  claim_extraction: "Claims",
+  query_generation: "Queries",
+  evidence_retrieval: "Evidence",
+  verdict_classification: "Verdict",
+  corrective_rewrite: "Rewrite",
 };
 
 export function ArchitecturePreview() {
@@ -38,7 +38,7 @@ export function ArchitecturePreview() {
             Live Architecture Preview
           </p>
           <h3 className="mt-3 text-2xl font-semibold text-foreground sm:text-3xl">
-            A screenshot-ready flow for the whole system.
+            A clear end-to-end view of the system.
           </h3>
         </div>
         <div className="metric-pill rounded-full px-4 py-2 text-xs tracking-[0.2em] text-foreground uppercase">
@@ -47,14 +47,14 @@ export function ArchitecturePreview() {
       </div>
 
       <div className="relative mt-8 overflow-hidden rounded-[28px] border border-white/10 bg-[rgba(8,20,36,0.92)] p-4 sm:p-5">
-        <div className="absolute inset-x-8 top-1/2 hidden h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-primary/40 to-transparent lg:block" />
+        <div className="absolute inset-x-8 top-1/2 hidden h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-primary/40 to-transparent 2xl:block" />
         <motion.div
-          className="absolute top-1/2 hidden h-3 w-24 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-primary/55 to-transparent blur-md lg:block"
+          className="absolute top-1/2 hidden h-3 w-24 -translate-y-1/2 rounded-full bg-gradient-to-r from-transparent via-primary/55 to-transparent blur-md 2xl:block"
           animate={{ x: ["-12%", "92%"] }}
           transition={{ duration: 5.2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
         />
 
-        <div className="grid gap-3 lg:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {architectureStages.map((stage, index) => {
             const Icon = icons[stage.id as keyof typeof icons];
 
@@ -71,23 +71,23 @@ export function ArchitecturePreview() {
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-[rgba(7,18,32,0.95)] text-primary">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
+                    <p className="shrink-0 text-xs font-semibold tracking-[0.18em] text-primary uppercase">
                       {stage.shortLabel}
                     </p>
                   </div>
 
-                  <p className="mt-4 text-base font-semibold text-foreground">
+                  <p className="mt-4 break-words text-sm font-semibold text-foreground sm:text-base">
                     {stage.title}
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-secondary-foreground">
+                  <p className="mt-2 break-words text-xs leading-5 text-secondary-foreground sm:text-sm sm:leading-6">
                     {stageNotes[stage.id]}
                   </p>
                 </div>
 
                 {index < architectureStages.length - 1 ? (
-                  <div className="mt-3 flex justify-center lg:absolute lg:-right-5 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2">
+                  <div className="mt-3 flex justify-center 2xl:absolute 2xl:-right-5 2xl:top-1/2 2xl:mt-0 2xl:-translate-y-1/2">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[rgba(7,18,32,0.95)] text-primary shadow-[0_14px_32px_rgba(0,0,0,0.18)]">
-                      <ArrowRight className="h-4 w-4 lg:block" />
+                      <ArrowRight className="h-4 w-4" />
                     </div>
                   </div>
                 ) : null}
@@ -111,7 +111,7 @@ export function ArchitecturePreview() {
         <Panel
           label="Output"
           title="Verdicts you can defend"
-          body="Claims, evidence, labels, confidence, and rewrite all fit cleanly on one screen."
+          body="Claims, evidence, labels, confidence, and rewrite stay visible together."
         />
       </div>
     </Card>

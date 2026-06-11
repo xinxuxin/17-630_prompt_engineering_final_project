@@ -32,7 +32,7 @@ export function HeroSection() {
           fact checking.
         </h1>
         <p className="mt-7 max-w-2xl text-lg leading-8 text-secondary-foreground">
-          Built for a final presentation: clear flow, visible evidence, and grounded recent-claim analysis.
+          Clear flow, visible evidence, and grounded recent-claim analysis in one interface.
         </p>
 
         <div className="mt-7 flex max-w-3xl flex-wrap gap-3">
@@ -98,7 +98,7 @@ export function HeroSection() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold tracking-[0.18em] text-primary uppercase">
-                Presentation framing
+                System framing
               </p>
               <p className="mt-3 max-w-xl text-sm leading-6 text-secondary-foreground">
                 One slide can show the whole story: input, stages, evidence, verdict, rewrite.
@@ -106,7 +106,7 @@ export function HeroSection() {
             </div>
             <div className="rounded-[22px] border border-primary/14 bg-primary/8 px-4 py-3 text-sm text-secondary-foreground">
               <Wand2 className="mr-2 inline h-4 w-4 text-primary" />
-              Built for live demo and screenshots
+              Structured for inspection
             </div>
           </div>
         </div>
